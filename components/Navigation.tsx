@@ -70,7 +70,7 @@ export default function Navigation({ showLeaderboard = false }: NavProps) {
   ]
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-40 safe-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white z-40 safe-bottom" style={{ boxShadow: '0 -1px 0 0 #e5e7eb' }}>
       <div className="flex items-stretch max-w-lg mx-auto">
         {tabs.map((tab) => {
           const active = pathname === tab.href
@@ -78,8 +78,14 @@ export default function Navigation({ showLeaderboard = false }: NavProps) {
             <Link
               key={tab.href}
               href={tab.href}
-              className="flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5 min-h-[56px] transition-colors"
+              className="flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5 min-h-[56px] transition-colors relative"
             >
+              {active && (
+                <span
+                  className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-[3px] rounded-full"
+                  style={{ backgroundColor: '#1D6B3B' }}
+                />
+              )}
               {tab.icon(active)}
               <span
                 className="text-[10px] font-medium"

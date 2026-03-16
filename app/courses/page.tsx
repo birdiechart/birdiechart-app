@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import Navigation from '@/components/Navigation'
+import BirdieLogo from '@/components/BirdieLogo'
 
 interface SearchResult {
   id: string
@@ -185,12 +186,13 @@ export default function CoursesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      <div className="bg-white shadow-sm safe-top">
-        <div className="px-4 pt-4 pb-3">
-          <h1 className="text-xl font-bold text-gray-900" style={{ fontFamily: 'var(--font-playfair)' }}>
-            Find Courses
-          </h1>
-          <p className="text-sm text-gray-400 mt-0.5">Add any course to track your birdies</p>
+      <div className="bg-white safe-top" style={{ boxShadow: '0 1px 0 0 #e5e7eb' }}>
+        <div className="px-4 pt-3 pb-3 flex items-center gap-2.5">
+          <BirdieLogo iconOnly className="w-8 h-8" />
+          <div>
+            <h1 className="text-base font-bold leading-tight" style={{ color: '#1D6B3B', fontFamily: 'var(--font-playfair)' }}>Find Courses</h1>
+            <p className="text-[11px] text-gray-400 leading-tight">Add any course to track your birdies</p>
+          </div>
         </div>
 
         <div className="px-4 pb-4">

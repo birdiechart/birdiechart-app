@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Navigation from '@/components/Navigation'
+import BirdieLogo from '@/components/BirdieLogo'
 
 interface StatCourse {
   id: string
@@ -230,9 +231,10 @@ export default function StatsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
-      <div className="bg-white shadow-sm safe-top">
-        <div className="px-4 pt-4 pb-4">
-          <h1 className="text-xl font-bold text-gray-900" style={{ fontFamily: 'var(--font-playfair)' }}>My Stats</h1>
+      <div className="bg-white safe-top" style={{ boxShadow: '0 1px 0 0 #e5e7eb' }}>
+        <div className="px-4 pt-3 pb-3 flex items-center gap-2.5">
+          <BirdieLogo iconOnly className="w-8 h-8" />
+          <h1 className="text-base font-bold" style={{ color: '#1D6B3B', fontFamily: 'var(--font-playfair)' }}>My Stats</h1>
         </div>
       </div>
 

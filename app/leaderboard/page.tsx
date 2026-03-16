@@ -102,7 +102,7 @@ export default function LeaderboardPage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       {/* Header */}
-      <div className="bg-white shadow-sm safe-top">
+      <div className="bg-white safe-top" style={{ boxShadow: '0 1px 0 0 #e5e7eb' }}>
         <div className="px-4 py-4">
           <div className="flex items-center gap-3">
             {club?.logo_url && (

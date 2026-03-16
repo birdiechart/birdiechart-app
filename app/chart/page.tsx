@@ -10,6 +10,7 @@ import ScorePanel from '@/components/ScorePanel'
 import ProgressStats from '@/components/ProgressStats'
 import Celebration from '@/components/Celebration'
 import CourseSearchSheet from '@/components/CourseSearchSheet'
+import BirdieLogo from '@/components/BirdieLogo'
 import { useRouter } from 'next/navigation'
 
 export default function ChartPage() {
@@ -204,15 +205,20 @@ export default function ChartPage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       {/* Header */}
-      <div className="bg-white shadow-sm safe-top">
-        <div className="px-4 pt-4 pb-2">
-          <div className="flex items-center justify-between mb-1">
-            <h1
-              className="text-xl font-bold text-gray-900"
-              style={{ fontFamily: 'var(--font-playfair)' }}
-            >
-              Birdie Chart
-            </h1>
+      <div className="bg-white safe-top" style={{ boxShadow: '0 1px 0 0 #e5e7eb' }}>
+        <div className="px-4 pt-3 pb-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <BirdieLogo iconOnly className="w-8 h-8" />
+              <div>
+                <h1 className="text-base font-bold leading-tight" style={{ color: '#1D6B3B', fontFamily: 'var(--font-playfair)' }}>
+                  Birdie Chart
+                </h1>
+                {user && (
+                  <p className="text-[11px] text-gray-400 leading-tight">Hey, {user.name.split(' ')[0]}</p>
+                )}
+              </div>
+            </div>
             <button
               onClick={async () => {
                 const supabase = createClient()
@@ -224,9 +230,6 @@ export default function ChartPage() {
               Sign out
             </button>
           </div>
-          {user && (
-            <p className="text-xs text-gray-400">Hey, {user.name.split(' ')[0]}</p>
-          )}
         </div>
 
         {/* Course switcher */}
