@@ -11,6 +11,7 @@ import ProgressStats from '@/components/ProgressStats'
 import Celebration from '@/components/Celebration'
 import CourseSearchSheet from '@/components/CourseSearchSheet'
 import BirdieLogo from '@/components/BirdieLogo'
+import AppMenu from '@/components/AppMenu'
 import { useRouter } from 'next/navigation'
 
 export default function ChartPage() {
@@ -219,16 +220,13 @@ export default function ChartPage() {
                 )}
               </div>
             </div>
-            <button
-              onClick={async () => {
+            <AppMenu
+              onSignOut={async () => {
                 const supabase = createClient()
                 await supabase.auth.signOut()
                 router.push('/login')
               }}
-              className="text-xs text-gray-400 hover:text-gray-600"
-            >
-              Sign out
-            </button>
+            />
           </div>
         </div>
 
