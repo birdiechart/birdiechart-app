@@ -11,6 +11,9 @@ const TEE_DESCRIPTIONS: Record<TeeOption, string> = {
   tournament:   'Low-to-mid handicap men',
   club:         'Mid handicap / senior men',
   medal:        'High handicap / forward tees',
+  course:       'Forward / senior forward tees',
+  island:       'Short / beginner tees',
+  skidaway:     'Shortest available tees',
 }
 
 export default function ClubSettingsPage() {

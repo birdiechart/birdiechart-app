@@ -108,45 +108,26 @@ export default function ClubChartPage() {
     setScores(allScores.filter((s) => s.course_id === activeCourseId))
   }, [activeCourseId, allScores])
 
-  const handleScoreSubmit = useCallback(async (hole: number, scoreType: ScoreType) => {
-    if (!userId || !activeCourseId) return
-    const supabase = createClient()
-
-    // Remove existing score for this hole
-    const existing = scores.find((s) => s.hole_number === hole)
-    if (existing) {
-      await supabase.from('hole_scores').delete().eq('id', existing.id)
+  const handleScoreSaved = useCallback((score: ScoreType, isFirstBirdie: boolean, scoredAt: string) => {
+    if (selectedHole === null) return
+    const hole = selectedHole
+    const newScore: HoleScore = {
+      id: crypto.randomUUID(),
+      user_id: userId,
+      course_id: activeCourseId,
+      hole_number: hole,
+      score_type: score,
+      scored_at: scoredAt,
     }
-
-    if (scoreType === 'par' || scoreType === 'bogey') {
-      setScores((prev) => prev.filter((s) => s.hole_number !== hole))
-      setAllScores((prev) => prev.filter((s) => !(s.course_id === activeCourseId && s.hole_number === hole)))
-      setSelectedHole(null)
-      return
+    setScores((prev) => [...prev.filter((s) => s.hole_number !== hole), newScore])
+    setAllScores((prev) => [...prev.filter((s) => !(s.course_id === activeCourseId && s.hole_number === hole)), newScore])
+    if (isFirstBirdie) {
+      setCelebratingHole(hole)
+      setCelebrationIsEagle(score === 'eagle')
+      setShowCelebration(true)
+      setTimeout(() => setCelebratingHole(null), 1000)
     }
-
-    const { data: newScore } = await supabase
-      .from('hole_scores')
-      .insert({ user_id: userId, course_id: activeCourseId, hole_number: hole, score_type: scoreType })
-      .select()
-      .single()
-
-    if (newScore) {
-      const isFirstBirdie = !scores.some(
-        (s) => s.hole_number === hole && (s.score_type === 'birdie' || s.score_type === 'eagle')
-      )
-      setScores((prev) => [...prev.filter((s) => s.hole_number !== hole), newScore])
-      setAllScores((prev) => [...prev.filter((s) => !(s.course_id === activeCourseId && s.hole_number === hole)), newScore])
-
-      if (isFirstBirdie && (scoreType === 'birdie' || scoreType === 'eagle')) {
-        setCelebratingHole(hole)
-        setCelebrationIsEagle(scoreType === 'eagle')
-        setShowCelebration(true)
-        setTimeout(() => setCelebratingHole(null), 1000)
-      }
-    }
-    setSelectedHole(null)
-  }, [userId, activeCourseId, scores])
+  }, [userId, activeCourseId, selectedHole])
 
   // Facility-wide progress: unique holes birdied/eagled across all Landings courses
   const facilityCourseIds = courses.map((c) => c.id)
@@ -285,7 +266,7 @@ export default function ClubChartPage() {
             <HoleGrid
               holeDetails={holeDetails.filter((h) => h.course_id === activeCourseId)}
               scores={scores}
-              onHolePress={setSelectedHole}
+              onHoleTap={setSelectedHole}
               celebratingHole={celebratingHole}
             />
           </>
@@ -301,13 +282,15 @@ export default function ClubChartPage() {
       </div>
 
       {/* Score panel */}
-      {selectedHole !== null && (
+      {selectedHole !== null && userId && (
         <ScorePanel
-          hole={selectedHole}
-          currentScore={scores.find((s) => s.hole_number === selectedHole)?.score_type}
-          holeDetail={holeDetails.find((h) => h.course_id === activeCourseId && h.hole_number === selectedHole)}
-          onSubmit={handleScoreSubmit}
+          courseId={activeCourseId}
+          holeNumber={selectedHole}
+          holeDetail={holeDetails.find((h) => h.course_id === activeCourseId && h.hole_number === selectedHole) || null}
+          isLandings={true}
+          userId={userId}
           onClose={() => setSelectedHole(null)}
+          onScoreSaved={handleScoreSaved}
         />
       )}
 
