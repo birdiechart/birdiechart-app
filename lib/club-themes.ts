@@ -15,6 +15,7 @@ export const CLUB_THEMES: Record<string, ClubTheme> = {
     text: '#FFFFFF',
     logoPath: '/landings-logo.svg',
     logoOnDark: true,
+  teeNames: ['championship', 'tournament', 'club', 'medal'],
   },
 }
 
