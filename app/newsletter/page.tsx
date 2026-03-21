@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
@@ -30,7 +30,7 @@ const NEWSLETTER_ISSUES = [
   },
 ]
 
-export default function NewsletterPage() {
+function NewsletterContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const fromClub = searchParams.get('from')
@@ -122,5 +122,13 @@ export default function NewsletterPage() {
 
       <Navigation />
     </div>
+  )
+}
+
+export default function NewsletterPage() {
+  return (
+    <Suspense>
+      <NewsletterContent />
+    </Suspense>
   )
 }
