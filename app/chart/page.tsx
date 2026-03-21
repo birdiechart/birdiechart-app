@@ -29,6 +29,7 @@ export default function ChartPage() {
   const [showAddCourse, setShowAddCourse] = useState(false)
   const [deletingCourseId, setDeletingCourseId] = useState<string | null>(null)
   const [hasClub, setHasClub] = useState(false)
+  const [eaglesCountTowardGoal, setEaglesCountTowardGoal] = useState(true)
   const [loading, setLoading] = useState(true)
   const [seasonStartMap, setSeasonStartMap] = useState<Map<string, string | null>>(new Map())
   const [showNewSeasonModal, setShowNewSeasonModal] = useState(false)
@@ -49,6 +50,7 @@ export default function ChartPage() {
       if (profile) {
         setUser(profile)
         setHasClub(!!profile.club_id)
+        if (profile.eagles_count_toward_goal != null) setEaglesCountTowardGoal(profile.eagles_count_toward_goal)
       }
 
       // Load user's courses
@@ -281,6 +283,7 @@ export default function ChartPage() {
               courseName={activeCourse?.name || ''}
               totalHoles={activeCourse?.holes || 18}
               seasonStart={activeSeasonStart}
+              eaglesCountTowardGoal={eaglesCountTowardGoal}
             />
             <div className="px-4 pb-1 flex justify-end">
               <button
@@ -336,6 +339,10 @@ export default function ChartPage() {
           userId={user.id}
           onClose={() => setSelectedHole(null)}
           onScoreSaved={handleScoreSaved}
+          onScoreDeleted={(id) => {
+            setScores((prev) => prev.filter((s) => s.id !== id))
+            setAllScores((prev) => prev.filter((s) => s.id !== id))
+          }}
           onParSaved={(holeNumber, par) => {
             setHoleDetails((prev) => [
               ...prev,
@@ -428,7 +435,7 @@ export default function ChartPage() {
         isEagle={celebrationIsEagle}
       />
 
-      <Navigation showLeaderboard={hasClub} />
+      <Navigation />
     </div>
   )
 }

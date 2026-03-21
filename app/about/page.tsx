@@ -37,16 +37,12 @@ export default function AboutPage() {
           </div>
 
           <div>
-            <h2 className="text-base font-bold text-gray-900 mb-2">Club leaderboards</h2>
-            <p>
-              Golf is better with friends. Join a club to compete with your regular playing partners on a shared leaderboard — ranked by unique holes birdied across all your courses.
-            </p>
-          </div>
-
-          <div>
             <h2 className="text-base font-bold text-gray-900 mb-2">Private clubs & white label</h2>
             <p>
-              We work with private country clubs to offer a branded version of Birdie Chart for their members. If you&apos;re interested in bringing Birdie Chart to your club, reach out.
+              We work with private golf clubs and golf leagues to offer a branded version of Birdie Chart for their members — pre-loaded with courses and tees, plus a leaderboard so members can compete to birdie every hole across the property. Leaderboards are exclusive to club and league members and not part of the main app.
+            </p>
+            <p className="mt-2">
+              If you&apos;re interested in bringing Birdie Chart to your club or league, reach out.
             </p>
           </div>
 

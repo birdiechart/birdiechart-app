@@ -8,13 +8,14 @@ interface ProgressStatsProps {
   courseName: string
   totalHoles: number
   seasonStart: string | null
+  eaglesCountTowardGoal?: boolean
 }
 
-export default function ProgressStats({ scores, allScores, courseName, totalHoles, seasonStart }: ProgressStatsProps) {
+export default function ProgressStats({ scores, allScores, courseName, totalHoles, seasonStart, eaglesCountTowardGoal = true }: ProgressStatsProps) {
   // Per-course: unique holes birdied or better
   const birdiedHoles = new Set(
     scores
-      .filter((s) => s.score_type === 'birdie' || s.score_type === 'eagle')
+      .filter((s) => s.score_type === 'birdie' || (eaglesCountTowardGoal && s.score_type === 'eagle'))
       .map((s) => s.hole_number)
   )
   const courseCompletion = Math.round((birdiedHoles.size / totalHoles) * 100)

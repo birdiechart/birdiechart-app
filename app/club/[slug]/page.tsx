@@ -3,12 +3,13 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
-import { getClubTheme } from '@/lib/club-themes'
+import { getClubTheme, getClubScoreColors } from '@/lib/club-themes'
 import { LANDINGS_COURSES, TEE_OPTIONS, TeeOption } from '@/lib/landings-data'
 import Link from 'next/link'
 import HoleGrid from '@/components/HoleGrid'
 import ScorePanel from '@/components/ScorePanel'
 import Celebration from '@/components/Celebration'
+import ClubNavigation from '@/components/ClubNavigation'
 import { Course, HoleScore, HoleDetail, ScoreType } from '@/lib/types'
 
 const COURSE_NAMES = LANDINGS_COURSES.map((c) => c.name)
@@ -23,7 +24,7 @@ export default function ClubChartPage() {
   const [loading, setLoading] = useState(true)
   const [userId, setUserId] = useState('')
   const [userName, setUserName] = useState('')
-  const [selectedTee, setSelectedTee] = useState<TeeOption>('blue')
+  const [selectedTee, setSelectedTee] = useState<TeeOption>('tournament')
   const [courses, setCourses] = useState<Course[]>([])
   const [activeCourseId, setActiveCourseId] = useState('')
   const [holeDetails, setHoleDetails] = useState<HoleDetail[]>([])
@@ -35,6 +36,7 @@ export default function ClubChartPage() {
   const [celebrationIsEagle, setCelebrationIsEagle] = useState(false)
   const [clubName, setClubName] = useState('')
   const [clubId, setClubId] = useState('')
+  const [eaglesCountTowardGoal, setEaglesCountTowardGoal] = useState(true)
 
   useEffect(() => {
     async function init() {
@@ -63,7 +65,8 @@ export default function ClubChartPage() {
       if (!profile) { router.push(`/club/${slug}/login`); return }
       setUserId(authUser.id)
       setUserName(profile.name?.split(' ')[0] || '')
-      setSelectedTee((profile.selected_tee as TeeOption) || 'blue')
+      setSelectedTee((profile.selected_tee as TeeOption) || 'tournament')
+      if (profile.eagles_count_toward_goal != null) setEaglesCountTowardGoal(profile.eagles_count_toward_goal)
 
       // Load user's courses — filter to Landings courses only
       const { data: userCourses } = await supabase
@@ -74,8 +77,8 @@ export default function ClubChartPage() {
       const courseList = (userCourses || [])
         .map((uc: { course_id: string; courses: Course | Course[] | null }) =>
           Array.isArray(uc.courses) ? uc.courses[0] : uc.courses)
-        .filter(Boolean)
-        .filter((c: Course) => COURSE_NAMES.includes(c.name)) as Course[]
+        .filter((c): c is Course => c !== null)
+        .filter((c: Course) => COURSE_NAMES.includes(c.name))
 
       setCourses(courseList)
       if (courseList.length > 0) setActiveCourseId(courseList[0].id)
@@ -87,21 +90,23 @@ export default function ClubChartPage() {
         .eq('user_id', authUser.id)
       setAllScores(allScoreData || [])
 
-      // Load hole details
-      if (courseList.length > 0) {
-        const ids = courseList.map((c: Course) => c.id)
-        const { data: details } = await supabase
-          .from('hole_details')
-          .select('*')
-          .in('course_id', ids)
-          .eq('tee_name', profile.selected_tee || 'blue')
-        setHoleDetails(details || [])
-      }
-
       setLoading(false)
     }
     init()
   }, [slug, router])
+
+  // Reload hole details when tee or courses change
+  useEffect(() => {
+    if (courses.length === 0 || !selectedTee) return
+    const supabase = createClient()
+    const ids = courses.map((c) => c.id)
+    supabase
+      .from('hole_details')
+      .select('*')
+      .in('course_id', ids)
+      .eq('tee_name', selectedTee)
+      .then(({ data }) => setHoleDetails(data || []))
+  }, [selectedTee, courses])
 
   // Filter scores to active course
   useEffect(() => {
@@ -134,7 +139,7 @@ export default function ClubChartPage() {
   const facilityBirdiedHoles = new Set(
     allScores
       .filter((s) => facilityCourseIds.includes(s.course_id) &&
-        (s.score_type === 'birdie' || s.score_type === 'eagle'))
+        (s.score_type === 'birdie' || (eaglesCountTowardGoal && s.score_type === 'eagle')))
       .map((s) => `${s.course_id}-${s.hole_number}`)
   )
   const facilityPct = Math.round((facilityBirdiedHoles.size / TOTAL_FACILITY_HOLES) * 100)
@@ -157,7 +162,7 @@ export default function ClubChartPage() {
   }
 
   return (
-    <div className="min-h-screen pb-6" style={{ backgroundColor: theme.primaryLight }}>
+    <div className="min-h-screen pb-24" style={{ backgroundColor: theme.primaryLight }}>
 
       {/* Club Header */}
       <div style={{ backgroundColor: theme.primary }} className="safe-top">
@@ -165,10 +170,10 @@ export default function ClubChartPage() {
           <div className="flex items-center justify-between mb-3">
             {/* Logo */}
             <img
-              src={`/landings-logo.svg`}
+              src={theme.logoPath}
               alt={clubName}
               className="h-7 w-auto"
-              style={{ filter: 'brightness(0) invert(1)' }}
+              style={theme.logoOnDark ? { filter: 'brightness(0) invert(1)' } : undefined}
             />
             <div className="flex items-center gap-2">
               <span className="text-xs font-medium" style={{ color: 'rgba(255,255,255,0.7)' }}>
@@ -235,7 +240,8 @@ export default function ClubChartPage() {
                 )
                 const courseHoles = new Set(
                   allScores
-                    .filter((s) => s.course_id === course.id && (s.score_type === 'birdie' || s.score_type === 'eagle'))
+                    .filter((s) => s.course_id === course.id &&
+                      (s.score_type === 'birdie' || (eaglesCountTowardGoal && s.score_type === 'eagle')))
                     .map((s) => s.hole_number)
                 )
                 const done = courseHoles.size
@@ -268,6 +274,7 @@ export default function ClubChartPage() {
               scores={scores}
               onHoleTap={setSelectedHole}
               celebratingHole={celebratingHole}
+              scoreColors={getClubScoreColors(theme)}
             />
           </>
         )}
@@ -291,15 +298,20 @@ export default function ClubChartPage() {
           userId={userId}
           onClose={() => setSelectedHole(null)}
           onScoreSaved={handleScoreSaved}
+          onScoreDeleted={(id) => {
+            setScores((prev) => prev.filter((s) => s.id !== id))
+            setAllScores((prev) => prev.filter((s) => s.id !== id))
+          }}
         />
       )}
 
-      {showCelebration && (
-        <Celebration
-          isEagle={celebrationIsEagle}
-          onComplete={() => setShowCelebration(false)}
-        />
-      )}
+      <Celebration
+        show={showCelebration}
+        isEagle={celebrationIsEagle}
+        onDone={() => setShowCelebration(false)}
+      />
+
+      <ClubNavigation slug={slug} theme={theme} />
     </div>
   )
 }

@@ -3,11 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-interface NavProps {
-  showLeaderboard?: boolean
-}
-
-export default function Navigation({ showLeaderboard = false }: NavProps) {
+export default function Navigation() {
   const pathname = usePathname()
 
   const tabs = [
@@ -22,18 +18,6 @@ export default function Navigation({ showLeaderboard = false }: NavProps) {
         </svg>
       ),
     },
-    ...(showLeaderboard ? [{
-      href: '/leaderboard',
-      label: 'Leaderboard',
-      icon: (active: boolean) => (
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={active ? '#1D6B3B' : '#9ca3af'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="2" y="14" width="4" height="7" rx="1"/>
-          <rect x="9" y="9" width="4" height="12" rx="1"/>
-          <rect x="16" y="4" width="4" height="17" rx="1"/>
-          <path d="M18 4l-2-2 2-2 2 2"/>
-        </svg>
-      ),
-    }] : []),
     {
       href: '/courses',
       label: 'Find Courses',

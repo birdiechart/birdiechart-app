@@ -16,6 +16,8 @@ export default function ClubLoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [resetSent, setResetSent] = useState(false)
+  const [resetLoading, setResetLoading] = useState(false)
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -32,6 +34,17 @@ export default function ClubLoginPage() {
     }
   }
 
+  async function handleForgotPassword() {
+    if (!email) { setError('Enter your email above first.'); return }
+    setResetLoading(true)
+    const supabase = createClient()
+    await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/club/${slug}/login`,
+    })
+    setResetLoading(false)
+    setResetSent(true)
+  }
+
   if (!theme) return null
 
   return (
@@ -41,10 +54,10 @@ export default function ClubLoginPage() {
       <div style={{ backgroundColor: theme.primary }} className="safe-top">
         <div className="px-6 py-5 flex justify-center">
           <img
-            src="/landings-logo.svg"
-            alt="The Landings"
+            src={theme.logoPath}
+            alt="Club logo"
             className="h-8 w-auto"
-            style={{ filter: 'brightness(0) invert(1)' }}
+            style={theme.logoOnDark ? { filter: 'brightness(0) invert(1)' } : undefined}
           />
         </div>
       </div>
@@ -99,7 +112,22 @@ export default function ClubLoginPage() {
           </button>
         </form>
 
-        <p className="text-center text-sm text-gray-500 mt-6">
+        {resetSent ? (
+          <p className="text-center text-sm text-green-600 mt-6 font-medium">
+            Password reset email sent — check your inbox.
+          </p>
+        ) : (
+          <button
+            type="button"
+            onClick={handleForgotPassword}
+            disabled={resetLoading}
+            className="w-full text-center text-sm text-gray-400 mt-4 hover:text-gray-600 transition-colors"
+          >
+            {resetLoading ? 'Sending...' : 'Forgot password?'}
+          </button>
+        )}
+
+        <p className="text-center text-sm text-gray-500 mt-4">
           New member?{' '}
           <Link
             href={`/club/${slug}/signup`}

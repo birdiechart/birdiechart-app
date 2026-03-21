@@ -72,97 +72,138 @@ export default function ClubSignupPage() {
     setLoading(true)
     const supabase = createClient()
 
-    // Create auth user
-    const { data, error: signupError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { name, club_slug: slug } },
-    })
+    try {
+      // Create auth user
+      const { data, error: signupError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { name, club_slug: slug } },
+      })
 
-    if (signupError) {
-      setError(signupError.message)
-      setLoading(false)
-      return
-    }
+      if (signupError) {
+        setError(signupError.message)
+        setLoading(false)
+        return
+      }
 
-    if (!data.user) {
-      setError('Something went wrong. Please try again.')
-      setLoading(false)
-      return
-    }
+      if (!data.user) {
+        setError('Something went wrong. Please try again.')
+        setLoading(false)
+        return
+      }
 
-    const userId = data.user.id
+      const userId = data.user.id
 
-    // Wait for DB trigger to create profile
-    await new Promise((r) => setTimeout(r, 600))
+      // Wait for DB trigger to create profile, retry up to 3x
+      let profileReady = false
+      for (let i = 0; i < 3; i++) {
+        await new Promise((r) => setTimeout(r, 700))
+        const { data: check } = await supabase.from('users').select('id').eq('id', userId).single()
+        if (check) { profileReady = true; break }
+      }
+      if (!profileReady) {
+        setError('Account setup timed out. Please try signing in.')
+        setLoading(false)
+        return
+      }
 
-    // Get club
-    const { data: club } = await supabase
-      .from('clubs')
-      .select('id')
-      .eq('slug', slug)
-      .single()
-
-    if (!club) { setError('Club not found.'); setLoading(false); return }
-
-    // Set selected tee on profile
-    await supabase
-      .from('users')
-      .update({ selected_tee: selectedTee, club_id: club.id })
-      .eq('id', userId)
-
-    // Join club
-    await supabase
-      .from('user_clubs')
-      .upsert({ user_id: userId, club_id: club.id })
-
-    // Auto-enroll in all 6 Landings courses
-    for (const landingsCourse of LANDINGS_COURSES) {
-      // Find or create the course
-      let { data: existing } = await supabase
-        .from('courses')
+      // Get club
+      const { data: club } = await supabase
+        .from('clubs')
         .select('id')
-        .eq('name', landingsCourse.name)
-        .eq('is_landings', true)
+        .eq('slug', slug)
         .single()
 
-      if (!existing) {
-        const { data: newCourse } = await supabase
+      if (!club) { setError('Club not found. Please contact support.'); setLoading(false); return }
+
+      // Set selected tee on profile
+      const { error: profileError } = await supabase
+        .from('users')
+        .update({ selected_tee: selectedTee, club_id: club.id })
+        .eq('id', userId)
+
+      if (profileError) {
+        setError('Failed to save your preferences. Please try again.')
+        setLoading(false)
+        return
+      }
+
+      // Join club
+      const { error: joinError } = await supabase
+        .from('user_clubs')
+        .upsert({ user_id: userId, club_id: club.id })
+
+      if (joinError) {
+        setError('Failed to join the club. Please try again.')
+        setLoading(false)
+        return
+      }
+
+      // Auto-enroll in all 6 Landings courses
+      for (const landingsCourse of LANDINGS_COURSES) {
+        // Find or create the course
+        let { data: existing } = await supabase
           .from('courses')
-          .insert({
-            name: landingsCourse.name,
-            location: landingsCourse.location,
-            holes: 18,
-            is_landings: true,
-          })
           .select('id')
+          .eq('name', landingsCourse.name)
+          .eq('is_landings', true)
           .single()
 
-        if (newCourse) {
-          existing = newCourse
-          // Insert hole details for all tees
-          const holeRows = landingsCourse.holes.flatMap((h) =>
-            TEE_OPTIONS.map((t) => ({
-              course_id: newCourse.id,
-              hole_number: h.hole_number,
-              par: h.par,
-              yardage: h.tees[t.value],
-              tee_name: t.value,
-            }))
-          )
-          await supabase.from('hole_details').insert(holeRows)
+        if (!existing) {
+          const { data: newCourse, error: courseError } = await supabase
+            .from('courses')
+            .insert({
+              name: landingsCourse.name,
+              location: landingsCourse.location,
+              holes: 18,
+              is_landings: true,
+            })
+            .select('id')
+            .single()
+
+          if (courseError || !newCourse) {
+            // Course may have been created by another concurrent signup — try fetching again
+            const { data: retry } = await supabase
+              .from('courses')
+              .select('id')
+              .eq('name', landingsCourse.name)
+              .eq('is_landings', true)
+              .single()
+            existing = retry
+          } else {
+            existing = newCourse
+            // Insert hole details for all tees
+            const holeRows = landingsCourse.holes.flatMap((h) =>
+              TEE_OPTIONS.map((t) => ({
+                course_id: newCourse.id,
+                hole_number: h.hole_number,
+                par: h.par,
+                yardage: h.tees[t.value],
+                tee_name: t.value,
+              }))
+            )
+            const { error: holeError } = await supabase.from('hole_details').insert(holeRows)
+            if (holeError && !holeError.message.includes('duplicate')) {
+              // Non-duplicate error inserting holes — log but continue
+              console.error('hole_details insert error:', holeError.message)
+            }
+          }
+        }
+
+        if (existing) {
+          await supabase
+            .from('user_courses')
+            .upsert({ user_id: userId, course_id: existing.id })
         }
       }
 
-      if (existing) {
-        await supabase
-          .from('user_courses')
-          .upsert({ user_id: userId, course_id: existing.id })
-      }
+      router.push(`/club/${slug}`)
+      router.refresh()
+    } catch (err) {
+      console.error('Signup error:', err)
+      setError('An unexpected error occurred. Please try again.')
+      setLoading(false)
     }
-
-    router.push(`/club/${slug}`)
-    router.refresh()
   }
 
   if (!theme) return null
@@ -174,10 +215,10 @@ export default function ClubSignupPage() {
       <div style={{ backgroundColor: theme.primary }} className="safe-top">
         <div className="px-6 py-5 flex justify-center">
           <img
-            src="/landings-logo.svg"
-            alt="The Landings"
+            src={theme.logoPath}
+            alt="Club logo"
             className="h-8 w-auto"
-            style={{ filter: 'brightness(0) invert(1)' }}
+            style={theme.logoOnDark ? { filter: 'brightness(0) invert(1)' } : undefined}
           />
         </div>
       </div>

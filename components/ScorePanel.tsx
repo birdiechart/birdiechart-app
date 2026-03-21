@@ -12,6 +12,7 @@ interface ScorePanelProps {
   userId: string
   onClose: () => void
   onScoreSaved: (score: ScoreType, isFirstBirdie: boolean, scoredAt: string) => void
+  onScoreDeleted?: (scoreId: string) => void
   onParSaved?: (holeNumber: number, par: number) => void
 }
 
@@ -34,6 +35,7 @@ export default function ScorePanel({
   userId,
   onClose,
   onScoreSaved,
+  onScoreDeleted,
   onParSaved,
 }: ScorePanelProps) {
   const [selected, setSelected] = useState<ScoreType | null>(null)
@@ -118,6 +120,7 @@ export default function ScorePanel({
     await supabase.from('hole_scores').delete().eq('id', id)
     setHistory((prev) => prev.filter((s) => s.id !== id))
     setConfirmDeleteId(null)
+    onScoreDeleted?.(id)
   }
 
 return (
@@ -243,7 +246,7 @@ return (
           {/* History */}
           <div>
             <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
-              Birdie History
+              Score History
             </h3>
             {loading ? (
               <p className="text-sm text-gray-400 text-center py-4">Loading...</p>
@@ -254,7 +257,7 @@ return (
               const firstBirdieEntry = [...birdieHistory].reverse()[0]
 
               return birdieHistory.length === 0 ? (
-                <p className="text-sm text-gray-400 text-center py-4">No birdies yet on this hole</p>
+                <p className="text-sm text-gray-400 text-center py-4">No scores yet on this hole</p>
               ) : (
                 <div className="space-y-2 max-h-48 overflow-y-auto no-scrollbar">
                   {birdieHistory.map((score) => {
@@ -274,9 +277,9 @@ return (
                             {isFirst && (
                               <span
                                 className="text-[10px] font-semibold px-2 py-0.5 rounded-full text-white"
-                                style={{ backgroundColor: '#1D6B3B' }}
+                                style={{ backgroundColor: score.score_type === 'eagle' ? '#134d2a' : '#1D6B3B' }}
                               >
-                                First birdie!
+                                {score.score_type === 'eagle' ? 'First eagle!' : 'First birdie!'}
                               </span>
                             )}
                           </div>

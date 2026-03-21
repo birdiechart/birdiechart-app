@@ -294,7 +294,7 @@ export default function CoursesPage() {
         </>
       )}
 
-      <Navigation showLeaderboard={hasClub} />
+      <Navigation />
     </div>
   )
 }

@@ -370,7 +370,7 @@ export default function StatsPage() {
         </div>
       )}
 
-      <Navigation showLeaderboard={hasClub} />
+      <Navigation />
     </div>
   )
 }

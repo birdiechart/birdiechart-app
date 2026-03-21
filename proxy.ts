@@ -68,6 +68,14 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(redirectUrl)
   }
 
+  // Redirect authenticated users away from club login/signup
+  const clubAuthMatch = pathname.match(/^\/club\/([^/]+)\/(login|signup)$/)
+  if (user && clubAuthMatch) {
+    const redirectUrl = request.nextUrl.clone()
+    redirectUrl.pathname = `/club/${clubAuthMatch[1]}`
+    return NextResponse.redirect(redirectUrl)
+  }
+
   return supabaseResponse
 }
 

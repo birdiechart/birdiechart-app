@@ -30,6 +30,8 @@ create table if not exists users (
   email text not null,
   home_course text default '',
   club_id uuid references clubs(id) on delete set null,
+  selected_tee text default 'tournament',
+  eagles_count_toward_goal boolean default true,
   created_at timestamptz default now()
 );
 
@@ -54,7 +56,8 @@ create table if not exists hole_details (
   hole_number integer not null check (hole_number between 1 and 18),
   par integer not null check (par between 3 and 5),
   yardage integer default 380,
-  unique(course_id, hole_number)
+  tee_name text default null,
+  unique(course_id, hole_number, tee_name)
 );
 
 -- ============================================
@@ -116,6 +119,16 @@ create policy "Users can insert own profile" on users
 
 create policy "Users can update own profile" on users
   for update using (auth.uid() = id);
+
+create policy "Club members can view co-members profiles" on users
+  for select using (
+    exists (
+      select 1 from user_clubs uc1
+      join user_clubs uc2 on uc1.club_id = uc2.club_id
+      where uc1.user_id = auth.uid()
+      and uc2.user_id = users.id
+    )
+  );
 
 -- Courses: everyone can read, authenticated can insert
 create policy "Courses are publicly readable" on courses

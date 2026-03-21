@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import Navigation from '@/components/Navigation'
 
@@ -31,6 +32,8 @@ const NEWSLETTER_ISSUES = [
 
 export default function NewsletterPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const fromClub = searchParams.get('from')
   const [hasClub, setHasClub] = useState(false)
 
   useEffect(() => {
@@ -47,11 +50,23 @@ export default function NewsletterPage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       <div className="bg-white shadow-sm safe-top">
-        <div className="px-4 py-4">
-          <h1 className="text-xl font-bold text-gray-900" style={{ fontFamily: 'var(--font-playfair)' }}>
-            Newsletter
-          </h1>
-          <p className="text-sm text-gray-400 mt-0.5">Tips, stories, and birdie inspiration</p>
+        <div className="px-4 py-4 flex items-center gap-3">
+          {fromClub && (
+            <Link
+              href={`/club/${fromClub}/settings`}
+              className="p-1.5 rounded-lg bg-gray-100"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500">
+                <path d="M19 12H5M12 5l-7 7 7 7"/>
+              </svg>
+            </Link>
+          )}
+          <div>
+            <h1 className="text-xl font-bold text-gray-900" style={{ fontFamily: 'var(--font-playfair)' }}>
+              Newsletter
+            </h1>
+            <p className="text-sm text-gray-400 mt-0.5">Tips, stories, and birdie inspiration</p>
+          </div>
         </div>
       </div>
 
@@ -105,7 +120,7 @@ export default function NewsletterPage() {
         ))}
       </div>
 
-      <Navigation showLeaderboard={hasClub} />
+      <Navigation />
     </div>
   )
 }
