@@ -10,7 +10,11 @@ export async function proxy(request: NextRequest) {
   const rootDomains = ['birdiechart', 'www', 'localhost', 'vercel']
   const isRootDomain = rootDomains.some((d) => subdomain === d || host.startsWith('localhost'))
 
-  if (!isRootDomain && subdomain && !url.pathname.startsWith('/club/')) {
+  // Paths that should never be rewritten — shared pages accessible from any subdomain
+  const sharedPaths = ['/about', '/privacy', '/terms', '/faq', '/newsletter']
+  const isSharedPath = sharedPaths.some((p) => url.pathname.startsWith(p))
+
+  if (!isRootDomain && subdomain && !url.pathname.startsWith('/club/') && !isSharedPath) {
     url.pathname = `/club/${subdomain}${url.pathname}`
     return NextResponse.rewrite(url)
   }
