@@ -45,14 +45,14 @@ export default function ClubSignupPage() {
 
     // Verify signup code
     const supabase = createClient()
-    const { data: club } = await supabase
+    const { data: club, error: clubError } = await supabase
       .from('clubs')
       .select('id, signup_code')
       .eq('slug', slug)
       .single()
 
     if (!club) {
-      setError('Club not found.')
+      setError(`Club not found. [slug:${slug}] [err:${clubError?.message}]`)
       setLoading(false)
       return
     }
