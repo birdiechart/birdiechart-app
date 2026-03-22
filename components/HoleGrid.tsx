@@ -54,7 +54,7 @@ export default function HoleGrid({ holeDetails, scores, onHoleTap, celebratingHo
   const holes = Array.from({ length: 18 }, (_, i) => i + 1)
 
   return (
-    <div className={`grid grid-cols-6 md:grid-cols-9 ${fullWidth ? 'gap-2 p-2' : 'gap-2.5 p-4'}`}>
+    <div className={`grid grid-cols-6 md:grid-cols-9 ${fullWidth ? 'gap-2.5 p-3' : 'gap-2.5 p-4'}`}>
       {holes.map((holeNum) => {
         const detail = holeDetails.find((h) => h.hole_number === holeNum)
         const bestScore = getBestScore(scores, holeNum)

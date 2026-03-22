@@ -162,12 +162,12 @@ export default function ClubChartPage() {
   }
 
   return (
-    <div className="min-h-screen pb-24" style={{ backgroundColor: theme.primaryLight }}>
+    <div className="min-h-screen pb-24 flex flex-col" style={{ backgroundColor: theme.primaryLight }}>
 
-      {/* Club Header */}
+      {/* Club Header — compact */}
       <div style={{ backgroundColor: theme.primary }} className="safe-top">
-        <div className="px-4 pt-3 pb-0">
-          <div className="flex items-center justify-between mb-3">
+        <div className="px-4 pt-3 pb-3">
+          <div className="flex items-center justify-between">
             {/* Logo */}
             <img
               src={theme.logoPath}
@@ -203,81 +203,74 @@ export default function ClubChartPage() {
               </button>
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Tee indicator */}
-          <div className="flex items-center gap-1.5 pb-3">
-            <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: teeColor }} />
-            <span className="text-xs font-medium" style={{ color: 'rgba(255,255,255,0.8)' }}>
-              {teeLabel} Tees
-            </span>
-          </div>
+      {/* Course selector + progress — slim strip below header */}
+      <div className="bg-white" style={{ boxShadow: '0 1px 0 0 #e5e7eb' }}>
+        {/* Course tabs */}
+        <div className="flex gap-2 px-3 pt-2 pb-1 overflow-x-auto no-scrollbar">
+          {LANDINGS_COURSES.map((lc) => {
+            const course = courses.find((c) => c.name === lc.name)
+            if (!course) return (
+              <span key={lc.name} className="shrink-0 text-[11px] px-2.5 py-1 rounded-full"
+                style={{ backgroundColor: '#f3f4f6', color: '#d1d5db' }}>
+                {lc.name}
+              </span>
+            )
+            const courseHoles = new Set(
+              allScores
+                .filter((s) => s.course_id === course.id &&
+                  (s.score_type === 'birdie' || (eaglesCountTowardGoal && s.score_type === 'eagle')))
+                .map((s) => s.hole_number)
+            )
+            const done = courseHoles.size
+            const isActive = course.id === activeCourseId
+            return (
+              <button
+                key={lc.name}
+                onClick={() => setActiveCourseId(course.id)}
+                className="shrink-0 text-[11px] px-2.5 py-1 rounded-full font-semibold transition-all"
+                style={{
+                  backgroundColor: isActive ? theme.primary : '#f3f4f6',
+                  color: isActive ? '#fff' : '#6b7280',
+                }}
+              >
+                {lc.name} {done}/18
+              </button>
+            )
+          })}
         </div>
 
-        {/* Facility Progress Bar */}
-        <div className="px-4 pb-4">
-          <div className="rounded-2xl p-3" style={{ backgroundColor: 'rgba(255,255,255,0.12)' }}>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold text-white">Facility Progress</span>
-              <span className="text-xs font-bold text-white">
-                {facilityBirdiedHoles.size}/{TOTAL_FACILITY_HOLES} holes
-              </span>
-            </div>
-            <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
-              <div
-                className="h-full rounded-full transition-all duration-500"
-                style={{ width: `${facilityPct}%`, backgroundColor: '#FFFFFF' }}
-              />
-            </div>
-            {/* Per-course mini indicators */}
-            <div className="flex gap-1.5 mt-2.5 flex-wrap">
-              {LANDINGS_COURSES.map((lc) => {
-                const course = courses.find((c) => c.name === lc.name)
-                if (!course) return (
-                  <span key={lc.name} className="text-[10px] px-2 py-0.5 rounded-full"
-                    style={{ backgroundColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)' }}>
-                    {lc.name}
-                  </span>
-                )
-                const courseHoles = new Set(
-                  allScores
-                    .filter((s) => s.course_id === course.id &&
-                      (s.score_type === 'birdie' || (eaglesCountTowardGoal && s.score_type === 'eagle')))
-                    .map((s) => s.hole_number)
-                )
-                const done = courseHoles.size
-                const isActive = course.id === activeCourseId
-                return (
-                  <button
-                    key={lc.name}
-                    onClick={() => setActiveCourseId(course.id)}
-                    className="text-[10px] px-2 py-0.5 rounded-full font-medium transition-all"
-                    style={{
-                      backgroundColor: isActive ? '#FFFFFF' : 'rgba(255,255,255,0.15)',
-                      color: isActive ? theme.primary : 'rgba(255,255,255,0.8)',
-                    }}
-                  >
-                    {lc.name} {done}/18
-                  </button>
-                )
-              })}
-            </div>
+        {/* Facility progress bar */}
+        <div className="px-3 pb-2 pt-1 flex items-center gap-2">
+          <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: '#e5e7eb' }}>
+            <div
+              className="h-full rounded-full transition-all duration-500"
+              style={{ width: `${facilityPct}%`, backgroundColor: theme.primary }}
+            />
+          </div>
+          <span className="text-[10px] font-semibold shrink-0" style={{ color: theme.primary }}>
+            {facilityBirdiedHoles.size}/{TOTAL_FACILITY_HOLES}
+          </span>
+          <div className="flex items-center gap-1 shrink-0">
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: teeColor }} />
+            <span className="text-[10px]" style={{ color: '#9ca3af' }}>{teeLabel}</span>
           </div>
         </div>
       </div>
 
-      {/* Course hole grid */}
-      <div className="pt-2">
+      {/* Course hole grid — fills remaining space */}
+      <div className="flex-1">
         {activeCourse && (
-          <>
-            <HoleGrid
-              holeDetails={holeDetails.filter((h) => h.course_id === activeCourseId)}
-              scores={scores}
-              onHoleTap={setSelectedHole}
-              celebratingHole={celebratingHole}
-              scoreColors={getClubScoreColors(theme)}
-              fullWidth
-            />
-          </>
+          <HoleGrid
+            holeDetails={holeDetails.filter((h) => h.course_id === activeCourseId)}
+            scores={scores}
+            onHoleTap={setSelectedHole}
+            celebratingHole={celebratingHole}
+            scoreColors={getClubScoreColors(theme)}
+            fullWidth
+          />
         )}
 
         {courses.length === 0 && (
