@@ -49,7 +49,7 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Public routes (main app + club auth pages)
-  const publicRoutes = ['/login', '/signup', '/join']
+  const publicRoutes = ['/login', '/signup', '/join', '/admin']
   const isPublicMain = publicRoutes.some((r) => pathname.startsWith(r))
   const isClubAuth = /^\/club\/[^/]+(\/login|\/signup)/.test(pathname)
   const isPublic = isPublicMain || isClubAuth
