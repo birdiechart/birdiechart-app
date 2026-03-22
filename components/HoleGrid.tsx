@@ -9,6 +9,7 @@ interface HoleGridProps {
   onHoleTap: (holeNumber: number) => void
   celebratingHole?: number | null
   scoreColors?: ClubScoreColors
+  fullWidth?: boolean
 }
 
 function getBestScore(scores: HoleScore[], holeNumber: number): ScoreType | null {
@@ -49,11 +50,11 @@ function getScoreIcon(score: ScoreType | null, color: string) {
   return null
 }
 
-export default function HoleGrid({ holeDetails, scores, onHoleTap, celebratingHole, scoreColors }: HoleGridProps) {
+export default function HoleGrid({ holeDetails, scores, onHoleTap, celebratingHole, scoreColors, fullWidth }: HoleGridProps) {
   const holes = Array.from({ length: 18 }, (_, i) => i + 1)
 
   return (
-    <div className="grid grid-cols-6 md:grid-cols-9 gap-2.5 p-4">
+    <div className={`grid grid-cols-6 md:grid-cols-9 ${fullWidth ? 'gap-2 p-2' : 'gap-2.5 p-4'}`}>
       {holes.map((holeNum) => {
         const detail = holeDetails.find((h) => h.hole_number === holeNum)
         const bestScore = getBestScore(scores, holeNum)

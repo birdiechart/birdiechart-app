@@ -275,6 +275,7 @@ export default function ClubChartPage() {
               onHoleTap={setSelectedHole}
               celebratingHole={celebratingHole}
               scoreColors={getClubScoreColors(theme)}
+              fullWidth
             />
           </>
         )}

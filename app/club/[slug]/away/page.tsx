@@ -213,6 +213,7 @@ export default function ClubAwayPage() {
             holeDetails={holeDetails}
             scores={scores}
             onHoleTap={setSelectedHole}
+            fullWidth
             celebratingHole={celebratingHole}
           />
         </>
