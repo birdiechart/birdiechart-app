@@ -266,7 +266,7 @@ export default function ClubChartPage() {
       </div>
 
       {/* Course hole grid */}
-      <div className="px-4 pt-4">
+      <div className="pt-2">
         {activeCourse && (
           <>
             <HoleGrid
