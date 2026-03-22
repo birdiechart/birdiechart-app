@@ -176,7 +176,7 @@ export default function ClubAwayPage() {
 
       {courses.length === 0 ? (
         <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center">
-          <div className="text-5xl mb-4">✈️</div>
+          <div className="text-5xl mb-4">⛳</div>
           <h2 className="text-xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'var(--font-playfair)' }}>
             No away courses yet
           </h2>
