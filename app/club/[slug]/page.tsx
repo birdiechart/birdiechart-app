@@ -260,6 +260,40 @@ export default function ClubChartPage() {
         </div>
       </div>
 
+      {/* Stats card */}
+      {activeCourse && (() => {
+        const eagles = scores.filter((s) => s.score_type === 'eagle').length
+        const birdies = scores.filter((s) => s.score_type === 'birdie').length
+        const pars = scores.filter((s) => s.score_type === 'par').length
+        const birdiedHoles = new Set(
+          scores.filter((s) => s.score_type === 'birdie' || s.score_type === 'eagle').map((s) => s.hole_number)
+        ).size
+        return (
+          <div className="mx-3 mt-3 mb-2 rounded-2xl p-3" style={{ backgroundColor: theme.primaryLight }}>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: theme.primary }}>
+                {activeCourse.name}
+              </p>
+              <p className="text-[11px] font-semibold" style={{ color: theme.primary }}>
+                {birdiedHoles}/18 holes
+              </p>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { label: 'Birdies', value: birdies },
+                { label: 'Eagles', value: eagles },
+                { label: 'Pars', value: pars },
+              ].map(({ label, value }) => (
+                <div key={label} className="rounded-xl py-2 text-center bg-white">
+                  <p className="text-lg font-bold" style={{ color: theme.primary }}>{value}</p>
+                  <p className="text-[10px] text-gray-400">{label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Course hole grid */}
       <div>
         {activeCourse && (
@@ -281,32 +315,6 @@ export default function ClubChartPage() {
           </div>
         )}
       </div>
-
-      {/* Stats fill card */}
-      {activeCourse && (() => {
-        const birdied = scores.filter((s) => s.score_type === 'birdie' || s.score_type === 'eagle').length
-        const pars = scores.filter((s) => s.score_type === 'par').length
-        const eagles = scores.filter((s) => s.score_type === 'eagle').length
-        return (
-          <div className="mx-3 mt-1 mb-2 rounded-2xl p-4" style={{ backgroundColor: theme.primaryLight }}>
-            <p className="text-[11px] font-semibold mb-3 uppercase tracking-wide" style={{ color: theme.primary }}>
-              {activeCourse.name}
-            </p>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { label: 'Birdies', value: birdied - eagles },
-                { label: 'Eagles', value: eagles },
-                { label: 'Pars', value: pars },
-              ].map(({ label, value }) => (
-                <div key={label} className="rounded-xl p-2.5 text-center bg-white">
-                  <p className="text-xl font-bold" style={{ color: theme.primary }}>{value}</p>
-                  <p className="text-[10px] text-gray-400 mt-0.5">{label}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )
-      })()}
 
       {/* Score panel */}
       {selectedHole !== null && userId && (

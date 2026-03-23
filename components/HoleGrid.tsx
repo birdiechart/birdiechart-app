@@ -65,7 +65,7 @@ export default function HoleGrid({ holeDetails, scores, onHoleTap, celebratingHo
           <button
             key={holeNum}
             onClick={() => onHoleTap(holeNum)}
-            className={`aspect-square rounded-2xl flex flex-col items-center justify-center border-2 transition-all active:scale-95 ${
+            className={`${fullWidth ? 'min-h-[72px]' : 'aspect-square'} rounded-2xl flex flex-col items-center justify-center border-2 transition-all active:scale-95 ${
               isCelebrating ? 'celebrate' : ''
             }`}
             style={{
