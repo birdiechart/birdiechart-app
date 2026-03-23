@@ -38,6 +38,7 @@ export default function ClubChartPage() {
   const [clubId, setClubId] = useState('')
   const [eaglesCountTowardGoal, setEaglesCountTowardGoal] = useState(true)
   const [selectedStat, setSelectedStat] = useState<'birdie' | 'eagle' | 'par' | null>(null)
+  const [showTeePicker, setShowTeePicker] = useState(false)
 
   useEffect(() => {
     async function init() {
@@ -254,10 +255,17 @@ export default function ClubChartPage() {
           <span className="text-[10px] font-semibold shrink-0" style={{ color: theme.primary }}>
             {facilityBirdiedHoles.size}/{TOTAL_FACILITY_HOLES}
           </span>
-          <div className="flex items-center gap-1 shrink-0">
+          <button
+            onClick={() => setShowTeePicker(true)}
+            className="flex items-center gap-1 shrink-0 px-2 py-0.5 rounded-full active:opacity-70 transition-opacity"
+            style={{ backgroundColor: theme.primaryLight }}
+          >
             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: teeColor }} />
-            <span className="text-[10px]" style={{ color: '#9ca3af' }}>{teeLabel}</span>
-          </div>
+            <span className="text-[10px] font-semibold" style={{ color: theme.primary }}>{teeLabel}</span>
+            <svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke={theme.primary} strokeWidth="1.5" strokeLinecap="round">
+              <path d="M1.5 3 L4 5.5 L6.5 3"/>
+            </svg>
+          </button>
         </div>
       </div>
 
@@ -336,6 +344,56 @@ export default function ClubChartPage() {
             setAllScores((prev) => prev.filter((s) => s.id !== id))
           }}
         />
+      )}
+
+      {/* Tee picker sheet */}
+      {showTeePicker && (
+        <>
+          <div className="fixed inset-0 z-40 bg-black/40" onClick={() => setShowTeePicker(false)} />
+          <div className="fixed inset-x-0 bottom-0 z-50 rounded-t-3xl bg-white pb-safe">
+            <div className="flex items-center justify-between px-5 pt-5 pb-4">
+              <h3 className="text-base font-bold" style={{ color: theme.primary, fontFamily: 'var(--font-playfair)' }}>
+                Select Tees
+              </h3>
+              <button onClick={() => setShowTeePicker(false)} className="p-2 rounded-full bg-gray-100">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round">
+                  <line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/>
+                </svg>
+              </button>
+            </div>
+            <div className="px-4 pb-8 flex flex-col gap-2">
+              {TEE_OPTIONS.map((tee) => {
+                const isActive = tee.value === selectedTee
+                return (
+                  <button
+                    key={tee.value}
+                    onClick={async () => {
+                      setSelectedTee(tee.value as TeeOption)
+                      setShowTeePicker(false)
+                      const supabase = createClient()
+                      await supabase.from('users').update({ selected_tee: tee.value }).eq('id', userId)
+                    }}
+                    className="flex items-center gap-3 px-4 py-3.5 rounded-2xl border-2 transition-all active:scale-95"
+                    style={{
+                      borderColor: isActive ? theme.primary : '#e5e7eb',
+                      backgroundColor: isActive ? theme.primaryLight : '#fff',
+                    }}
+                  >
+                    <div className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: tee.color }} />
+                    <span className="text-sm font-semibold" style={{ color: isActive ? theme.primary : '#374151' }}>
+                      {tee.label} Tees
+                    </span>
+                    {isActive && (
+                      <svg className="ml-auto" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke={theme.primary} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M2.5 8 L6.5 12 L13.5 4"/>
+                      </svg>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        </>
       )}
 
       {/* Score history sheet */}
