@@ -162,7 +162,7 @@ export default function ClubChartPage() {
   }
 
   return (
-    <div className="min-h-screen pb-24 flex flex-col" style={{ backgroundColor: theme.primaryLight }}>
+    <div className="min-h-screen pb-24 flex flex-col bg-white">
 
       {/* Club Header — compact */}
       <div style={{ backgroundColor: theme.primary }} className="safe-top">
@@ -260,8 +260,8 @@ export default function ClubChartPage() {
         </div>
       </div>
 
-      {/* Course hole grid — fills remaining space */}
-      <div className="flex-1 h-full">
+      {/* Course hole grid */}
+      <div>
         {activeCourse && (
           <HoleGrid
             holeDetails={holeDetails.filter((h) => h.course_id === activeCourseId)}
@@ -281,6 +281,32 @@ export default function ClubChartPage() {
           </div>
         )}
       </div>
+
+      {/* Stats fill card */}
+      {activeCourse && (() => {
+        const birdied = scores.filter((s) => s.score_type === 'birdie' || s.score_type === 'eagle').length
+        const pars = scores.filter((s) => s.score_type === 'par').length
+        const eagles = scores.filter((s) => s.score_type === 'eagle').length
+        return (
+          <div className="mx-3 mt-1 mb-2 rounded-2xl p-4" style={{ backgroundColor: theme.primaryLight }}>
+            <p className="text-[11px] font-semibold mb-3 uppercase tracking-wide" style={{ color: theme.primary }}>
+              {activeCourse.name}
+            </p>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { label: 'Birdies', value: birdied - eagles },
+                { label: 'Eagles', value: eagles },
+                { label: 'Pars', value: pars },
+              ].map(({ label, value }) => (
+                <div key={label} className="rounded-xl p-2.5 text-center bg-white">
+                  <p className="text-xl font-bold" style={{ color: theme.primary }}>{value}</p>
+                  <p className="text-[10px] text-gray-400 mt-0.5">{label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
 
       {/* Score panel */}
       {selectedHole !== null && userId && (
