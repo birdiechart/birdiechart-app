@@ -261,7 +261,7 @@ export default function ClubChartPage() {
       </div>
 
       {/* Course hole grid — fills remaining space */}
-      <div className="flex-1">
+      <div className="flex-1 h-full">
         {activeCourse && (
           <HoleGrid
             holeDetails={holeDetails.filter((h) => h.course_id === activeCourseId)}

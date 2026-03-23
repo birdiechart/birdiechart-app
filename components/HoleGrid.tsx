@@ -54,7 +54,7 @@ export default function HoleGrid({ holeDetails, scores, onHoleTap, celebratingHo
   const holes = Array.from({ length: 18 }, (_, i) => i + 1)
 
   return (
-    <div className={`grid grid-cols-6 md:grid-cols-9 ${fullWidth ? 'gap-2.5 p-3' : 'gap-2.5 p-4'}`}>
+    <div className={`grid grid-cols-6 md:grid-cols-9 ${fullWidth ? 'h-full grid-rows-3 gap-2.5 p-3' : 'gap-2.5 p-4'}`}>
       {holes.map((holeNum) => {
         const detail = holeDetails.find((h) => h.hole_number === holeNum)
         const bestScore = getBestScore(scores, holeNum)
@@ -65,7 +65,7 @@ export default function HoleGrid({ holeDetails, scores, onHoleTap, celebratingHo
           <button
             key={holeNum}
             onClick={() => onHoleTap(holeNum)}
-            className={`aspect-square rounded-2xl flex flex-col items-center justify-center border-2 transition-all active:scale-95 ${
+            className={`${fullWidth ? '' : 'aspect-square '}rounded-2xl flex flex-col items-center justify-center border-2 transition-all active:scale-95 ${
               isCelebrating ? 'celebrate' : ''
             }`}
             style={{
