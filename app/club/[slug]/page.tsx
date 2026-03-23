@@ -244,20 +244,11 @@ export default function ClubChartPage() {
           })}
         </div>
 
-        {/* Facility progress bar */}
-        <div className="px-3 pb-2 pt-1 flex items-center gap-2">
-          <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: '#e5e7eb' }}>
-            <div
-              className="h-full rounded-full transition-all duration-500"
-              style={{ width: `${facilityPct}%`, backgroundColor: theme.primary }}
-            />
-          </div>
-          <span className="text-[10px] font-semibold shrink-0" style={{ color: theme.primary }}>
-            {facilityBirdiedHoles.size}/{TOTAL_FACILITY_HOLES}
-          </span>
+        {/* Tee button */}
+        <div className="px-3 pb-2 pt-1 flex justify-end">
           <button
             onClick={() => setShowTeePicker(true)}
-            className="flex items-center gap-1 shrink-0 px-2 py-0.5 rounded-full active:opacity-70 transition-opacity"
+            className="flex items-center gap-1 px-2 py-0.5 rounded-full active:opacity-70 transition-opacity"
             style={{ backgroundColor: theme.primaryLight }}
           >
             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: teeColor }} />
@@ -269,24 +260,39 @@ export default function ClubChartPage() {
         </div>
       </div>
 
-      {/* Stats card */}
+      {/* Progress + stats card */}
       {activeCourse && (() => {
         const eagles = scores.filter((s) => s.score_type === 'eagle').length
         const birdies = scores.filter((s) => s.score_type === 'birdie').length
         const pars = scores.filter((s) => s.score_type === 'par').length
         const birdiedHoles = new Set(
-          scores.filter((s) => s.score_type === 'birdie' || s.score_type === 'eagle').map((s) => s.hole_number)
+          scores.filter((s) => s.score_type === 'birdie' || (eaglesCountTowardGoal && s.score_type === 'eagle')).map((s) => s.hole_number)
         ).size
+        const pct = Math.round((birdiedHoles / 18) * 100)
         return (
-          <div className="mx-3 mt-3 mb-2 rounded-2xl p-3" style={{ backgroundColor: theme.primaryLight }}>
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: theme.primary }}>
-                {activeCourse.name}
-              </p>
-              <p className="text-[11px] font-semibold" style={{ color: theme.primary }}>
-                {birdiedHoles}/18 holes
-              </p>
+          <div className="px-4 pt-3 pb-2">
+            {/* Course progress — matches main app style */}
+            <div className="bg-white rounded-2xl p-4 shadow-sm mb-3">
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">{activeCourse.name}</p>
+                  <p className="text-sm font-semibold text-gray-900 mt-0.5">
+                    {birdiedHoles} of 18 holes birdied
+                  </p>
+                </div>
+                <span className="text-2xl font-bold" style={{ color: theme.primary, fontFamily: 'var(--font-playfair)' }}>
+                  {pct}%
+                </span>
+              </div>
+              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{ width: `${pct}%`, backgroundColor: theme.primary }}
+                />
+              </div>
             </div>
+
+            {/* Tappable stat buttons */}
             <div className="grid grid-cols-3 gap-2">
               {([
                 { label: 'Birdies', value: birdies, type: 'birdie' as const },
@@ -296,10 +302,10 @@ export default function ClubChartPage() {
                 <button
                   key={label}
                   onClick={() => setSelectedStat(type)}
-                  className="rounded-xl py-2 text-center bg-white active:scale-95 transition-transform"
+                  className="bg-white rounded-xl p-3 text-center shadow-sm active:scale-95 transition-transform"
                 >
                   <p className="text-lg font-bold" style={{ color: theme.primary }}>{value}</p>
-                  <p className="text-[10px] text-gray-400">{label}</p>
+                  <p className="text-[10px] text-gray-400 font-medium mt-0.5">{label}</p>
                 </button>
               ))}
             </div>
