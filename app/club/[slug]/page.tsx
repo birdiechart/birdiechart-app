@@ -208,110 +208,61 @@ export default function ClubChartPage() {
         </div>
       </div>
 
-      {/* Course selector + progress — slim strip below header */}
-      <div className="bg-white" style={{ boxShadow: '0 1px 0 0 #e5e7eb' }}>
-        {/* Course tabs */}
-        <div className="flex gap-2 px-3 pt-2 pb-1 overflow-x-auto no-scrollbar">
-          {LANDINGS_COURSES.map((lc) => {
-            const course = courses.find((c) => c.name === lc.name)
-            if (!course) return (
-              <span key={lc.name} className="shrink-0 text-[11px] px-2.5 py-1 rounded-full"
-                style={{ backgroundColor: '#f3f4f6', color: '#d1d5db' }}>
-                {lc.name}
-              </span>
-            )
-            const courseHoles = new Set(
-              allScores
-                .filter((s) => s.course_id === course.id &&
-                  (s.score_type === 'birdie' || (eaglesCountTowardGoal && s.score_type === 'eagle')))
-                .map((s) => s.hole_number)
-            )
-            const done = courseHoles.size
-            const isActive = course.id === activeCourseId
-            return (
-              <button
-                key={lc.name}
-                onClick={() => setActiveCourseId(course.id)}
-                className="shrink-0 text-[11px] px-2.5 py-1 rounded-full font-semibold transition-all"
-                style={{
-                  backgroundColor: isActive ? theme.primary : '#f3f4f6',
-                  color: isActive ? '#fff' : '#6b7280',
-                }}
-              >
-                {lc.name} {done}/18
-              </button>
-            )
-          })}
-        </div>
-
-        {/* Tee button */}
-        <div className="px-3 pb-2 pt-1 flex justify-end">
-          <button
-            onClick={() => setShowTeePicker(true)}
-            className="flex items-center gap-1 px-2 py-0.5 rounded-full active:opacity-70 transition-opacity"
-            style={{ backgroundColor: theme.primaryLight }}
-          >
-            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: teeColor }} />
-            <span className="text-[10px] font-semibold" style={{ color: theme.primary }}>{teeLabel}</span>
-            <svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke={theme.primary} strokeWidth="1.5" strokeLinecap="round">
-              <path d="M1.5 3 L4 5.5 L6.5 3"/>
-            </svg>
-          </button>
+      {/* Facility-wide goal progress */}
+      <div className="px-4 pt-3 pb-2">
+        <div className="bg-white rounded-2xl p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">The Landings Goal</p>
+              <p className="text-sm font-semibold text-gray-900 mt-0.5">
+                {facilityBirdiedHoles.size} of {TOTAL_FACILITY_HOLES} holes birdied
+              </p>
+            </div>
+            <span className="text-2xl font-bold" style={{ color: theme.primary, fontFamily: 'var(--font-playfair)' }}>
+              {facilityPct}%
+            </span>
+          </div>
+          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all duration-500"
+              style={{ width: `${facilityPct}%`, backgroundColor: theme.primary }}
+            />
+          </div>
         </div>
       </div>
 
-      {/* Progress + stats card */}
-      {activeCourse && (() => {
-        const eagles = scores.filter((s) => s.score_type === 'eagle').length
-        const birdies = scores.filter((s) => s.score_type === 'birdie').length
-        const pars = scores.filter((s) => s.score_type === 'par').length
-        const birdiedHoles = new Set(
-          scores.filter((s) => s.score_type === 'birdie' || (eaglesCountTowardGoal && s.score_type === 'eagle')).map((s) => s.hole_number)
-        ).size
-        const pct = Math.round((birdiedHoles / 18) * 100)
-        return (
-          <div className="px-4 pt-3 pb-2">
-            {/* Course progress — matches main app style */}
-            <div className="bg-white rounded-2xl p-4 shadow-sm mb-3">
-              <div className="flex items-center justify-between mb-2">
-                <div>
-                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">{activeCourse.name}</p>
-                  <p className="text-sm font-semibold text-gray-900 mt-0.5">
-                    {birdiedHoles} of 18 holes birdied
-                  </p>
-                </div>
-                <span className="text-2xl font-bold" style={{ color: theme.primary, fontFamily: 'var(--font-playfair)' }}>
-                  {pct}%
-                </span>
-              </div>
-              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-500"
-                  style={{ width: `${pct}%`, backgroundColor: theme.primary }}
-                />
-              </div>
-            </div>
-
-            {/* Tappable stat buttons */}
-            <div className="grid grid-cols-3 gap-2">
-              {([
-                { label: 'Birdies', value: birdies, type: 'birdie' as const },
-                { label: 'Eagles', value: eagles, type: 'eagle' as const },
-                { label: 'Pars', value: pars, type: 'par' as const },
-              ]).map(({ label, value, type }) => (
-                <button
-                  key={label}
-                  onClick={() => setSelectedStat(type)}
-                  className="bg-white rounded-xl p-3 text-center shadow-sm active:scale-95 transition-transform"
-                >
-                  <p className="text-lg font-bold" style={{ color: theme.primary }}>{value}</p>
-                  <p className="text-[10px] text-gray-400 font-medium mt-0.5">{label}</p>
-                </button>
-              ))}
-            </div>
-          </div>
-        )
-      })()}
+      {/* Course tabs */}
+      <div className="flex gap-2 px-4 pb-2 overflow-x-auto no-scrollbar">
+        {LANDINGS_COURSES.map((lc) => {
+          const course = courses.find((c) => c.name === lc.name)
+          if (!course) return (
+            <span key={lc.name} className="shrink-0 text-[11px] px-2.5 py-1 rounded-full"
+              style={{ backgroundColor: '#f3f4f6', color: '#d1d5db' }}>
+              {lc.name}
+            </span>
+          )
+          const done = new Set(
+            allScores
+              .filter((s) => s.course_id === course.id &&
+                (s.score_type === 'birdie' || (eaglesCountTowardGoal && s.score_type === 'eagle')))
+              .map((s) => s.hole_number)
+          ).size
+          const isActive = course.id === activeCourseId
+          return (
+            <button
+              key={lc.name}
+              onClick={() => setActiveCourseId(course.id)}
+              className="shrink-0 text-[11px] px-2.5 py-1 rounded-full font-semibold transition-all"
+              style={{
+                backgroundColor: isActive ? theme.primary : '#f3f4f6',
+                color: isActive ? '#fff' : '#6b7280',
+              }}
+            >
+              {lc.name} {done}/18
+            </button>
+          )
+        })}
+      </div>
 
       {/* Course hole grid */}
       <div>
@@ -334,6 +285,37 @@ export default function ClubChartPage() {
           </div>
         )}
       </div>
+
+      {/* Per-course stats below grid */}
+      {activeCourse && (() => {
+        const eagles = scores.filter((s) => s.score_type === 'eagle').length
+        const birdies = scores.filter((s) => s.score_type === 'birdie').length
+        const pars = scores.filter((s) => s.score_type === 'par').length
+        const birdiedHoles = new Set(
+          scores.filter((s) => s.score_type === 'birdie' || (eaglesCountTowardGoal && s.score_type === 'eagle')).map((s) => s.hole_number)
+        ).size
+        return (
+          <div className="px-4 pb-4">
+            <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wide mb-2">{activeCourse.name} · {birdiedHoles}/18 holes</p>
+            <div className="grid grid-cols-3 gap-2">
+              {([
+                { label: 'Birdies', value: birdies, type: 'birdie' as const },
+                { label: 'Eagles', value: eagles, type: 'eagle' as const },
+                { label: 'Pars', value: pars, type: 'par' as const },
+              ]).map(({ label, value, type }) => (
+                <button
+                  key={label}
+                  onClick={() => setSelectedStat(type)}
+                  className="bg-white rounded-xl p-3 text-center shadow-sm active:scale-95 transition-transform"
+                >
+                  <p className="text-lg font-bold" style={{ color: theme.primary }}>{value}</p>
+                  <p className="text-[10px] text-gray-400 font-medium mt-0.5">{label}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
 
       {/* Score panel */}
       {selectedHole !== null && userId && (
