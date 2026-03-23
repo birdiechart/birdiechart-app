@@ -37,6 +37,7 @@ export default function ClubChartPage() {
   const [clubName, setClubName] = useState('')
   const [clubId, setClubId] = useState('')
   const [eaglesCountTowardGoal, setEaglesCountTowardGoal] = useState(true)
+  const [selectedStat, setSelectedStat] = useState<'birdie' | 'eagle' | 'par' | null>(null)
 
   useEffect(() => {
     async function init() {
@@ -279,15 +280,19 @@ export default function ClubChartPage() {
               </p>
             </div>
             <div className="grid grid-cols-3 gap-2">
-              {[
-                { label: 'Birdies', value: birdies },
-                { label: 'Eagles', value: eagles },
-                { label: 'Pars', value: pars },
-              ].map(({ label, value }) => (
-                <div key={label} className="rounded-xl py-2 text-center bg-white">
+              {([
+                { label: 'Birdies', value: birdies, type: 'birdie' as const },
+                { label: 'Eagles', value: eagles, type: 'eagle' as const },
+                { label: 'Pars', value: pars, type: 'par' as const },
+              ]).map(({ label, value, type }) => (
+                <button
+                  key={label}
+                  onClick={() => setSelectedStat(type)}
+                  className="rounded-xl py-2 text-center bg-white active:scale-95 transition-transform"
+                >
                   <p className="text-lg font-bold" style={{ color: theme.primary }}>{value}</p>
                   <p className="text-[10px] text-gray-400">{label}</p>
-                </div>
+                </button>
               ))}
             </div>
           </div>
@@ -332,6 +337,62 @@ export default function ClubChartPage() {
           }}
         />
       )}
+
+      {/* Score history sheet */}
+      {selectedStat && (() => {
+        const label = selectedStat === 'birdie' ? 'Birdies' : selectedStat === 'eagle' ? 'Eagles' : 'Pars'
+        const filtered = scores
+          .filter((s) => s.score_type === selectedStat)
+          .sort((a, b) => a.hole_number - b.hole_number)
+        return (
+          <>
+            <div className="fixed inset-0 z-40 bg-black/40" onClick={() => setSelectedStat(null)} />
+            <div className="fixed inset-x-0 bottom-0 z-50 rounded-t-3xl bg-white pb-safe" style={{ maxHeight: '70vh' }}>
+              <div className="flex items-center justify-between px-5 pt-5 pb-3">
+                <div>
+                  <h3 className="text-base font-bold" style={{ color: theme.primary, fontFamily: 'var(--font-playfair)' }}>
+                    {label}
+                  </h3>
+                  <p className="text-xs text-gray-400">{activeCourse?.name}</p>
+                </div>
+                <button onClick={() => setSelectedStat(null)} className="p-2 rounded-full bg-gray-100">
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round">
+                    <line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/>
+                  </svg>
+                </button>
+              </div>
+
+              {filtered.length === 0 ? (
+                <div className="px-5 py-8 text-center">
+                  <p className="text-sm text-gray-400">No {label.toLowerCase()} recorded yet.</p>
+                </div>
+              ) : (
+                <div className="overflow-y-auto px-5 pb-6" style={{ maxHeight: 'calc(70vh - 80px)' }}>
+                  {filtered.map((s) => {
+                    const detail = holeDetails.find((h) => h.course_id === activeCourseId && h.hole_number === s.hole_number)
+                    const date = new Date(s.scored_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                    return (
+                      <div key={s.id} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm text-white"
+                            style={{ backgroundColor: theme.primary }}>
+                            {s.hole_number}
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-gray-900">Hole {s.hole_number}</p>
+                            {detail && <p className="text-xs text-gray-400">Par {detail.par}{detail.yardage ? ` · ${detail.yardage} yds` : ''}</p>}
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-400">{date}</p>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          </>
+        )
+      })()}
 
       <Celebration
         show={showCelebration}
