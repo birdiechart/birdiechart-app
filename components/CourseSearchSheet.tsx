@@ -31,14 +31,24 @@ export default function CourseSearchSheet({ userId, onClose, onCourseAdded }: Co
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [results, setResults] = useState<SearchResult[]>([])
   const [searching, setSearching] = useState(false)
+  const [hasSearched, setHasSearched] = useState(false)
   const [adding, setAdding] = useState<string | null>(null)
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [pendingResult, setPendingResult] = useState<SearchResult | null>(null)
+
+  // Course request state
+  const [showRequestForm, setShowRequestForm] = useState(false)
+  const [requestCourseName, setRequestCourseName] = useState('')
+  const [requestLocation, setRequestLocation] = useState('')
+  const [requestSubmitting, setRequestSubmitting] = useState(false)
+  const [requestSubmitted, setRequestSubmitted] = useState(false)
+
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     if (query.length < 3) {
       setResults([])
+      setHasSearched(false)
       return
     }
     if (debounceRef.current) clearTimeout(debounceRef.current)
@@ -50,6 +60,7 @@ export default function CourseSearchSheet({ userId, onClose, onCourseAdded }: Co
   async function runSearch(searchQuery: string) {
     setShowSuggestions(false)
     setSearching(true)
+    setHasSearched(false)
     try {
       const firstWord = searchQuery.trim().split(/\s+/)[0]
       const needsSecondGolfSearch = firstWord.toLowerCase() !== searchQuery.trim().toLowerCase()
@@ -108,6 +119,7 @@ export default function CourseSearchSheet({ userId, onClose, onCourseAdded }: Co
     } catch {
       setResults([])
     }
+    setHasSearched(true)
     setSearching(false)
   }
 
@@ -179,6 +191,35 @@ export default function CourseSearchSheet({ userId, onClose, onCourseAdded }: Co
       onCourseAdded(course)
     }
     setAdding(null)
+  }
+
+  function openRequestForm() {
+    setRequestCourseName(query)
+    setRequestLocation('')
+    setRequestSubmitted(false)
+    setShowRequestForm(true)
+  }
+
+  async function submitRequest(e: React.FormEvent) {
+    e.preventDefault()
+    if (!requestCourseName.trim()) return
+    setRequestSubmitting(true)
+    try {
+      await fetch('/api/course-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: userId,
+          course_name: requestCourseName.trim(),
+          location: requestLocation.trim(),
+        }),
+      })
+      setRequestSubmitted(true)
+    } catch {
+      // Still show success — the request may have saved even if email failed
+      setRequestSubmitted(true)
+    }
+    setRequestSubmitting(false)
   }
 
   return (
@@ -268,10 +309,35 @@ export default function CourseSearchSheet({ userId, onClose, onCourseAdded }: Co
                 </div>
               ))}
             </div>
+
+            {/* Request prompt at bottom of results */}
+            {hasSearched && !searching && (
+              <button
+                onClick={openRequestForm}
+                className="w-full mt-3 py-3 rounded-xl border border-dashed border-gray-300 text-sm text-gray-400 hover:border-gray-400 hover:text-gray-500 transition-colors"
+              >
+                Can&apos;t find your course? Request it
+              </button>
+            )}
           </div>
         )}
 
-        {!query.trim() && !results.length && (
+        {/* No results / request prompt */}
+        {hasSearched && !searching && results.length === 0 && (
+          <div className="text-center pt-8">
+            <p className="text-sm text-gray-500 mb-1">No courses found for &ldquo;{query}&rdquo;</p>
+            <p className="text-xs text-gray-400 mb-5">We&apos;ll add it for you — usually within 24 hours.</p>
+            <button
+              onClick={openRequestForm}
+              className="px-5 py-2.5 rounded-xl text-white text-sm font-semibold"
+              style={{ backgroundColor: '#1D6B3B' }}
+            >
+              Request this course
+            </button>
+          </div>
+        )}
+
+        {!query.trim() && !results.length && !hasSearched && (
           <p className="text-sm text-gray-400 text-center pt-8">Search for any golf course above</p>
         )}
       </div>
@@ -299,6 +365,86 @@ export default function CourseSearchSheet({ userId, onClose, onCourseAdded }: Co
                 18
               </button>
             </div>
+          </div>
+        </>
+      )}
+
+      {/* Course request modal */}
+      {showRequestForm && (
+        <>
+          <div className="absolute inset-0 bg-black/40 z-10" onClick={() => !requestSubmitting && setShowRequestForm(false)} />
+          <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 z-20 bg-white rounded-2xl p-6 shadow-2xl">
+            {requestSubmitted ? (
+              <div className="text-center py-2">
+                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1D6B3B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 mb-2" style={{ fontFamily: 'var(--font-playfair)' }}>
+                  Request received!
+                </h3>
+                <p className="text-sm text-gray-500 mb-5">
+                  We&apos;ll add <strong>{requestCourseName}</strong> and send you an email when it&apos;s ready.
+                </p>
+                <button
+                  onClick={() => setShowRequestForm(false)}
+                  className="w-full py-3 rounded-xl text-white font-semibold text-sm"
+                  style={{ backgroundColor: '#1D6B3B' }}
+                >
+                  Done
+                </button>
+              </div>
+            ) : (
+              <>
+                <h3 className="text-lg font-bold text-gray-900 mb-1" style={{ fontFamily: 'var(--font-playfair)' }}>
+                  Request a course
+                </h3>
+                <p className="text-sm text-gray-400 mb-5">We&apos;ll add it within 24 hours and email you when it&apos;s live.</p>
+                <form onSubmit={submitRequest} className="space-y-3">
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 mb-1 block">Course name</label>
+                    <input
+                      type="text"
+                      required
+                      value={requestCourseName}
+                      onChange={(e) => setRequestCourseName(e.target.value)}
+                      placeholder="e.g. Augusta National Golf Club"
+                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2"
+                      style={{ '--tw-ring-color': '#1D6B3B' } as React.CSSProperties}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 mb-1 block">City / location</label>
+                    <input
+                      type="text"
+                      value={requestLocation}
+                      onChange={(e) => setRequestLocation(e.target.value)}
+                      placeholder="e.g. Augusta, GA"
+                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2"
+                      style={{ '--tw-ring-color': '#1D6B3B' } as React.CSSProperties}
+                    />
+                  </div>
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setShowRequestForm(false)}
+                      className="flex-1 py-3 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={requestSubmitting || !requestCourseName.trim()}
+                      className="flex-1 py-3 rounded-xl text-white text-sm font-semibold disabled:opacity-60"
+                      style={{ backgroundColor: '#1D6B3B' }}
+                    >
+                      {requestSubmitting ? 'Sending...' : 'Submit request'}
+                    </button>
+                  </div>
+                </form>
+              </>
+            )}
           </div>
         </>
       )}

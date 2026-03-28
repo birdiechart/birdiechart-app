@@ -203,3 +203,24 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function handle_new_user();
+
+-- ============================================
+-- COURSE REQUESTS TABLE
+-- ============================================
+create table if not exists course_requests (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references users(id) on delete cascade not null,
+  course_name text not null,
+  location text not null default '',
+  status text not null default 'pending' check (status in ('pending', 'added')),
+  created_at timestamptz default now(),
+  completed_at timestamptz
+);
+
+alter table course_requests enable row level security;
+
+create policy "Users can view own requests" on course_requests
+  for select using (auth.uid() = user_id);
+
+create policy "Users can insert own requests" on course_requests
+  for insert with check (auth.uid() = user_id);
