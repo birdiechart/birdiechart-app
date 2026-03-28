@@ -26,6 +26,12 @@ export default function CoursesPage() {
   const [adding, setAdding] = useState<string | null>(null)
   const [addedNames, setAddedNames] = useState<Set<string>>(new Set())
   const [pendingResult, setPendingResult] = useState<SearchResult | null>(null)
+  const [hasSearched, setHasSearched] = useState(false)
+  const [showRequestForm, setShowRequestForm] = useState(false)
+  const [requestCourseName, setRequestCourseName] = useState('')
+  const [requestLocation, setRequestLocation] = useState('')
+  const [requestSubmitting, setRequestSubmitting] = useState(false)
+  const [requestSubmitted, setRequestSubmitted] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
@@ -67,8 +73,31 @@ export default function CoursesPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query])
 
+  function openRequestForm() {
+    setRequestCourseName(query)
+    setRequestLocation('')
+    setRequestSubmitted(false)
+    setShowRequestForm(true)
+  }
+
+  async function submitRequest(e: React.FormEvent) {
+    e.preventDefault()
+    if (!requestCourseName.trim()) return
+    setRequestSubmitting(true)
+    try {
+      await fetch('/api/course-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId, course_name: requestCourseName.trim(), location: requestLocation.trim() }),
+      })
+    } catch { /* non-fatal */ }
+    setRequestSubmitted(true)
+    setRequestSubmitting(false)
+  }
+
   async function runSearch(searchQuery: string) {
     setSearching(true)
+    setHasSearched(false)
     try {
       const firstWord = searchQuery.trim().split(/\s+/)[0]
       const needsSecondGolfSearch = firstWord.toLowerCase() !== searchQuery.trim().toLowerCase()
@@ -127,6 +156,7 @@ export default function CoursesPage() {
     } catch {
       setResults([])
     }
+    setHasSearched(true)
     setSearching(false)
   }
 
@@ -259,10 +289,32 @@ export default function CoursesPage() {
                 )
               })}
             </div>
+            {hasSearched && !searching && (
+              <button
+                onClick={openRequestForm}
+                className="w-full mt-3 py-3 rounded-xl border border-dashed border-gray-300 text-sm text-gray-400 bg-white"
+              >
+                Can&apos;t find your course? Request it
+              </button>
+            )}
           </>
         ) : (
-          !searching && (
-            <p className="text-sm text-gray-400 text-center pt-16">Search for any golf course above</p>
+          !searching && hasSearched ? (
+            <div className="text-center pt-16">
+              <p className="text-sm text-gray-500 mb-1">No courses found for &ldquo;{query}&rdquo;</p>
+              <p className="text-xs text-gray-400 mb-5">We&apos;ll add it for you — usually within 24 hours.</p>
+              <button
+                onClick={openRequestForm}
+                className="px-5 py-2.5 rounded-xl text-white text-sm font-semibold"
+                style={{ backgroundColor: '#1D6B3B' }}
+              >
+                Request this course
+              </button>
+            </div>
+          ) : (
+            !searching && (
+              <p className="text-sm text-gray-400 text-center pt-16">Search for any golf course above</p>
+            )
           )
         )}
       </div>
@@ -290,6 +342,63 @@ export default function CoursesPage() {
                 18
               </button>
             </div>
+          </div>
+        </>
+      )}
+
+      {/* Course request modal */}
+      {showRequestForm && (
+        <>
+          <div className="fixed inset-0 bg-black/40 z-40" onClick={() => !requestSubmitting && setShowRequestForm(false)} />
+          <div className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 shadow-2xl max-w-sm mx-auto">
+            {requestSubmitted ? (
+              <div className="text-center py-2">
+                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1D6B3B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 mb-2" style={{ fontFamily: 'var(--font-playfair)' }}>Request received!</h3>
+                <p className="text-sm text-gray-500 mb-5">We&apos;ll add <strong>{requestCourseName}</strong> and email you when it&apos;s ready.</p>
+                <button onClick={() => setShowRequestForm(false)}
+                  className="w-full py-3 rounded-xl text-white font-semibold text-sm"
+                  style={{ backgroundColor: '#1D6B3B' }}>
+                  Done
+                </button>
+              </div>
+            ) : (
+              <>
+                <h3 className="text-lg font-bold text-gray-900 mb-1" style={{ fontFamily: 'var(--font-playfair)' }}>Request a course</h3>
+                <p className="text-sm text-gray-400 mb-5">We&apos;ll add it within 24 hours and email you when it&apos;s live.</p>
+                <form onSubmit={submitRequest} className="space-y-3">
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 mb-1 block">Course name</label>
+                    <input type="text" required value={requestCourseName}
+                      onChange={(e) => setRequestCourseName(e.target.value)}
+                      placeholder="e.g. Augusta National Golf Club"
+                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 mb-1 block">City / location</label>
+                    <input type="text" value={requestLocation}
+                      onChange={(e) => setRequestLocation(e.target.value)}
+                      placeholder="e.g. Augusta, GA"
+                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none" />
+                  </div>
+                  <div className="flex gap-2 pt-1">
+                    <button type="button" onClick={() => setShowRequestForm(false)}
+                      className="flex-1 py-3 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600">
+                      Cancel
+                    </button>
+                    <button type="submit" disabled={requestSubmitting || !requestCourseName.trim()}
+                      className="flex-1 py-3 rounded-xl text-white text-sm font-semibold disabled:opacity-60"
+                      style={{ backgroundColor: '#1D6B3B' }}>
+                      {requestSubmitting ? 'Sending...' : 'Submit request'}
+                    </button>
+                  </div>
+                </form>
+              </>
+            )}
           </div>
         </>
       )}
