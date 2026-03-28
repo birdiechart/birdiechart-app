@@ -289,7 +289,7 @@ export default function CoursesPage() {
                 )
               })}
             </div>
-            {hasSearched && !searching && (
+            {query.length >= 3 && !searching && (
               <button
                 onClick={openRequestForm}
                 className="w-full mt-3 py-3 rounded-xl border border-dashed border-gray-300 text-sm text-gray-400 bg-white"
@@ -299,9 +299,9 @@ export default function CoursesPage() {
             )}
           </>
         ) : (
-          !searching && hasSearched ? (
+          query.length >= 3 && !searching ? (
             <div className="text-center pt-16">
-              <p className="text-sm text-gray-500 mb-1">No courses found for &ldquo;{query}&rdquo;</p>
+              <p className="text-sm text-gray-500 mb-1">No results for &ldquo;{query}&rdquo;</p>
               <p className="text-xs text-gray-400 mb-5">We&apos;ll add it for you — usually within 24 hours.</p>
               <button
                 onClick={openRequestForm}

@@ -311,7 +311,7 @@ export default function CourseSearchSheet({ userId, onClose, onCourseAdded }: Co
             </div>
 
             {/* Request prompt at bottom of results */}
-            {hasSearched && !searching && (
+            {query.length >= 3 && !searching && (
               <button
                 onClick={openRequestForm}
                 className="w-full mt-3 py-3 rounded-xl border border-dashed border-gray-300 text-sm text-gray-400 hover:border-gray-400 hover:text-gray-500 transition-colors"
@@ -323,7 +323,7 @@ export default function CourseSearchSheet({ userId, onClose, onCourseAdded }: Co
         )}
 
         {/* No results / request prompt */}
-        {hasSearched && !searching && results.length === 0 && (
+        {query.length >= 3 && !searching && results.length === 0 && (
           <div className="text-center pt-8">
             <p className="text-sm text-gray-500 mb-1">No courses found for &ldquo;{query}&rdquo;</p>
             <p className="text-xs text-gray-400 mb-5">We&apos;ll add it for you — usually within 24 hours.</p>
