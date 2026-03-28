@@ -251,7 +251,14 @@ export default function CoursesPage() {
       <div className="px-4 pt-4">
         {results.length > 0 ? (
           <>
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Results</p>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Results</p>
+              {query.length >= 3 && !searching && (
+                <button onClick={openRequestForm} className="text-xs text-green-700 font-medium underline underline-offset-2">
+                  Not listed? Request it
+                </button>
+              )}
+            </div>
             <div className="space-y-2">
               {results.map((result) => {
                 const added = addedNames.has(result.name)
@@ -289,14 +296,6 @@ export default function CoursesPage() {
                 )
               })}
             </div>
-            {query.length >= 3 && !searching && (
-              <button
-                onClick={openRequestForm}
-                className="w-full mt-3 py-3 rounded-xl border border-dashed border-gray-300 text-sm text-gray-400 bg-white"
-              >
-                Can&apos;t find your course? Request it
-              </button>
-            )}
           </>
         ) : (
           query.length >= 3 && !searching ? (
