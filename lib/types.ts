@@ -62,6 +62,17 @@ export interface UserCourse {
   season_start: string | null
 }
 
+export interface CourseRequest {
+  id: string
+  user_id: string
+  course_name: string
+  location: string
+  status: 'pending' | 'added'
+  created_at: string
+  completed_at: string | null
+  users?: { name: string; email: string }
+}
+
 export interface LeaderboardEntry {
   user_id: string
   name: string
