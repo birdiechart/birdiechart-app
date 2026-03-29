@@ -320,20 +320,6 @@ export default function CourseSearchSheet({ userId, onClose, onCourseAdded }: Co
           </div>
         )}
 
-        {/* No results / request prompt */}
-        {query.length >= 3 && !searching && results.length === 0 && (
-          <div className="text-center pt-8">
-            <p className="text-sm text-gray-500 mb-1">No courses found for &ldquo;{query}&rdquo;</p>
-            <p className="text-xs text-gray-400 mb-5">We&apos;ll add it for you — usually within 24 hours.</p>
-            <button
-              onClick={openRequestForm}
-              className="px-5 py-2.5 rounded-xl text-white text-sm font-semibold"
-              style={{ backgroundColor: '#1D6B3B' }}
-            >
-              Request this course
-            </button>
-          </div>
-        )}
 
         {!query.trim() && !results.length && !hasSearched && (
           <p className="text-sm text-gray-400 text-center pt-8">Search for any golf course above</p>

@@ -298,22 +298,8 @@ export default function CoursesPage() {
             </div>
           </>
         ) : (
-          query.length >= 3 && !searching ? (
-            <div className="text-center pt-16">
-              <p className="text-sm text-gray-500 mb-1">No results for &ldquo;{query}&rdquo;</p>
-              <p className="text-xs text-gray-400 mb-5">We&apos;ll add it for you — usually within 24 hours.</p>
-              <button
-                onClick={openRequestForm}
-                className="px-5 py-2.5 rounded-xl text-white text-sm font-semibold"
-                style={{ backgroundColor: '#1D6B3B' }}
-              >
-                Request this course
-              </button>
-            </div>
-          ) : (
-            !searching && (
-              <p className="text-sm text-gray-400 text-center pt-16">Search for any golf course above</p>
-            )
+          !searching && (
+            <p className="text-sm text-gray-400 text-center pt-16">Search for any golf course above</p>
           )
         )}
       </div>
