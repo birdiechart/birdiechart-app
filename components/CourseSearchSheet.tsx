@@ -139,7 +139,16 @@ export default function CourseSearchSheet({ userId, onClose, onCourseAdded }: Co
         totalHoles: r.total_holes || r.holes?.length || 18,
       }))
 
-      const filteredGoogleResults = googleResults.filter(g => !overlapsDb(g.name))
+      // Also suppress Google results that overlap with GolfAPI results (prefer cleaner GolfAPI names)
+      function overlapsGolfApi(name: string) {
+        const words = keyWords(name)
+        return golfApiResults.some(r => {
+          const rWords = keyWords(r.name)
+          return words.some(w => rWords.includes(w)) || rWords.some(w => words.includes(w))
+        })
+      }
+
+      const filteredGoogleResults = googleResults.filter(g => !overlapsDb(g.name) && !overlapsGolfApi(g.name))
       const filteredGolfApi = golfApiResults.filter(g => !overlapsDb(g.name))
 
       setResults([...dbResults, ...filteredGolfApi, ...filteredGoogleResults])
