@@ -212,6 +212,15 @@ export default function CoursesPage() {
     let { data: course } = await supabase.from('courses').select('*').eq('name', result.name).single()
 
     if (!course) {
+      const { data: fuzzyMatch } = await supabase
+        .from('courses')
+        .select('*')
+        .ilike('name', `%${result.name}%`)
+        .limit(1)
+      if (fuzzyMatch && fuzzyMatch.length > 0) course = fuzzyMatch[0]
+    }
+
+    if (!course) {
       let holes = result.prefetchedHoles || []
 
       if (holes.length === 0 && result.source === 'google') {

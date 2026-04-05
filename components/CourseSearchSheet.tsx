@@ -138,12 +138,21 @@ export default function CourseSearchSheet({ userId, onClose, onCourseAdded }: Co
     setPendingResult(null)
     const supabase = createClient()
 
-    // Check if already in DB
+    // Check if already in DB — exact match first, then partial (handles renamed courses)
     let { data: course } = await supabase
       .from('courses')
       .select('*')
       .eq('name', result.name)
       .single()
+
+    if (!course) {
+      const { data: fuzzyMatch } = await supabase
+        .from('courses')
+        .select('*')
+        .ilike('name', `%${result.name}%`)
+        .limit(1)
+      if (fuzzyMatch && fuzzyMatch.length > 0) course = fuzzyMatch[0]
+    }
 
     if (!course) {
       let holes = result.prefetchedHoles || []
