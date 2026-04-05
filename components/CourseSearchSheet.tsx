@@ -117,16 +117,20 @@ export default function CourseSearchSheet({ userId, onClose, onCourseAdded }: Co
         totalHoles: r.total_holes || r.holes?.length || 18,
       }))
 
-      const dbNames = new Set(dbResults.map(d => d.name.toLowerCase()))
-
-      const filteredGoogleResults = googleResults.filter(g => {
-        const gName = g.name.toLowerCase().trim()
-        return !dbNames.has(gName) && !mergedGolfRaw.some(r => {
-          const rName = r.name.toLowerCase().trim()
-          return gName.includes(rName) || rName.includes(gName)
+      const skipWords = new Set(['golf', 'course', 'club', 'the', 'and', 'at', 'of', 'a'])
+      function keyWords(s: string) {
+        return s.toLowerCase().split(/\W+/).filter(w => w.length > 2 && !skipWords.has(w))
+      }
+      function overlapsDb(name: string) {
+        const words = keyWords(name)
+        return dbResults.some(db => {
+          const dbWords = keyWords(db.name)
+          return words.some(w => dbWords.includes(w)) || dbWords.some(w => words.includes(w))
         })
-      })
-      const filteredGolfApi = golfApiResults.filter(g => !dbNames.has(g.name.toLowerCase().trim()))
+      }
+
+      const filteredGoogleResults = googleResults.filter(g => !overlapsDb(g.name))
+      const filteredGolfApi = golfApiResults.filter(g => !overlapsDb(g.name))
 
       setResults([...dbResults, ...filteredGolfApi, ...filteredGoogleResults])
     } catch {

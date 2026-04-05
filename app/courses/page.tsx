@@ -95,37 +95,41 @@ export default function CoursesPage() {
     try {
       const { lat, lng } = location!
       const supabase = createClient()
-      const res = await fetch(`/api/courses/search?q=golf+course&lat=${lat}&lng=${lng}`)
-      const data = await res.json()
-      const googleResults: SearchResult[] = (data.results || []).map((p: { place_id: string; name: string; formatted_address: string }) => ({
+      const [res, dbRes] = await Promise.all([
+        fetch(`/api/courses/search?q=golf+course&lat=${lat}&lng=${lng}`).then(r => r.json()),
+        supabase.from('courses').select('*').limit(200),
+      ])
+
+      const dbCourses: { id: string; name: string; location: string }[] = dbRes.data || []
+      const googleResults: SearchResult[] = (res.results || []).map((p: { place_id: string; name: string; formatted_address: string }) => ({
         id: p.place_id,
         name: p.name,
         formatted_address: p.formatted_address,
         source: 'google' as const,
       }))
 
-      // For each nearby result, check if we have it in the DB (with par data)
-      // and swap it out so the DB version (with full name) shows instead
-      const enriched: SearchResult[] = await Promise.all(
-        googleResults.map(async (r) => {
-          const { data: fuzzy } = await supabase
-            .from('courses')
-            .select('*')
-            .ilike('name', `%${r.name}%`)
-            .limit(1)
-          if (fuzzy && fuzzy.length > 0) {
-            return {
-              id: `db_${fuzzy[0].id}`,
-              name: fuzzy[0].name,
-              formatted_address: fuzzy[0].location,
-              source: 'golfapi' as const,
-            }
-          }
-          return r
-        })
-      )
+      // Replace Google results with DB versions when a meaningful word matches
+      const skipWords = new Set(['golf', 'course', 'club', 'the', 'and', 'at', 'of', 'a'])
+      function keyWords(s: string) {
+        return s.toLowerCase().split(/\W+/).filter(w => w.length > 2 && !skipWords.has(w))
+      }
 
-      // Deduplicate (DB matches may produce duplicates for same course)
+      const usedDbIds = new Set<string>()
+      const enriched: SearchResult[] = googleResults.map((r) => {
+        const gWords = keyWords(r.name)
+        const match = dbCourses.find(c => {
+          if (usedDbIds.has(c.id)) return false
+          const dbWords = keyWords(c.name)
+          return gWords.some(w => dbWords.includes(w))
+        })
+        if (match) {
+          usedDbIds.add(match.id)
+          return { id: `db_${match.id}`, name: match.name, formatted_address: match.location, source: 'golfapi' as const }
+        }
+        return r
+      })
+
+      // Deduplicate by name
       const seen = new Set<string>()
       const deduped = enriched.filter(r => {
         if (seen.has(r.name)) return false
@@ -133,13 +137,11 @@ export default function CoursesPage() {
         return true
       })
 
-      // Sort: DB courses (with par data) first, Google results after
-      const sorted = [
+      // DB courses first, then Google
+      setResults([
         ...deduped.filter(r => r.id.startsWith('db_')),
         ...deduped.filter(r => !r.id.startsWith('db_')),
-      ]
-
-      setResults(sorted)
+      ])
       setResultsLabel('Nearby Courses')
     } catch { /* ignore */ }
     setSearching(false)
@@ -237,18 +239,20 @@ export default function CoursesPage() {
         prefetchedHoles: r.holes, totalHoles: r.total_holes || r.holes?.length || 18,
       }))
 
-      const dbNames = new Set(dbResults.map(d => d.name.toLowerCase()))
-
-      // When location known: Google (location-biased) first, then GolfAPI
-      // Always filter out anything already shown in DB results
-      const filteredGoogle = googleResults.filter(g => {
-        const gName = g.name.toLowerCase().trim()
-        return !dbNames.has(gName) && !mergedGolfRaw.some(r => {
-          const rName = r.name.toLowerCase().trim()
-          return gName.includes(rName) || rName.includes(gName)
+      const skipWords = new Set(['golf', 'course', 'club', 'the', 'and', 'at', 'of', 'a'])
+      function keyWords(s: string) {
+        return s.toLowerCase().split(/\W+/).filter(w => w.length > 2 && !skipWords.has(w))
+      }
+      function overlapsDb(name: string) {
+        const words = keyWords(name)
+        return dbResults.some(db => {
+          const dbWords = keyWords(db.name)
+          return words.some(w => dbWords.includes(w)) || dbWords.some(w => words.includes(w))
         })
-      })
-      const filteredGolfApi = golfApiResults.filter(g => !dbNames.has(g.name.toLowerCase().trim()))
+      }
+
+      const filteredGoogle = googleResults.filter(g => !overlapsDb(g.name))
+      const filteredGolfApi = golfApiResults.filter(g => !overlapsDb(g.name))
 
       const externalResults = location
         ? [...filteredGoogle, ...filteredGolfApi]
