@@ -57,3 +57,26 @@ export async function sendUserCourseAddedNotification({
     `,
   })
 }
+
+export async function sendWelcomeEmail({
+  userEmail,
+  userName,
+}: {
+  userEmail: string
+  userName: string
+}) {
+  if (!process.env.RESEND_API_KEY) return
+
+  await getResend().emails.send({
+    from: 'Birdie Chart <team@birdiechart.golf>',
+    to: userEmail,
+    subject: 'Welcome to Birdie Chart',
+    html: `
+      <p>Hi ${userName},</p>
+      <p>Welcome to Birdie Chart — your personal birdie tracker for every round.</p>
+      <p>Start by logging your first birdie or searching for your home course.</p>
+      <p style="margin-top:16px"><a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://birdiechart.golf'}/chart" style="background:#1D6B3B;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600">Go to my chart →</a></p>
+      <p style="margin-top:24px;color:#9ca3af;font-size:13px">Happy birdie hunting,<br>The Birdie Chart team</p>
+    `,
+  })
+}
