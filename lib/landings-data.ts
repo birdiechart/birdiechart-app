@@ -14,6 +14,7 @@ export interface HoleData {
 
 export interface LandingsCourse {
   name: string
+  displayName: string
   location: string
   holes: HoleData[]
 }
@@ -36,7 +37,8 @@ export type TeeOption = typeof TEE_OPTIONS[number]['value']
 
 export const LANDINGS_COURSES: LandingsCourse[] = [
   {
-    name: 'Palmetto',
+    name: 'Landings Golf And Athletic Club (Palmetto)',
+    displayName: 'Palmetto',
     location: 'The Landings, Savannah, GA',
     holes: [
       { hole_number: 1,  par: 4, tees: { championship: 394, tournament: 371, club: 340, medal: 310, course: 280, island: 264, skidaway: 219 } },
@@ -60,7 +62,8 @@ export const LANDINGS_COURSES: LandingsCourse[] = [
     ],
   },
   {
-    name: 'Marshwood',
+    name: 'Landings Golf And Athletic Club (Marshwood)',
+    displayName: 'Marshwood',
     location: 'The Landings, Savannah, GA',
     holes: [
       { hole_number: 1,  par: 4, tees: { championship: 431, tournament: 414, club: 383, medal: 369, course: 339, island: 294, skidaway: 265 } },
@@ -84,7 +87,8 @@ export const LANDINGS_COURSES: LandingsCourse[] = [
     ],
   },
   {
-    name: 'Magnolia',
+    name: 'Landings Golf And Athletic Club (Magnolia)',
+    displayName: 'Magnolia',
     location: 'The Landings, Savannah, GA',
     holes: [
       { hole_number: 1,  par: 4, tees: { championship: 344, tournament: 320, club: 298, medal: 276, course: 241, island: 211, skidaway: 195 } },
@@ -108,7 +112,8 @@ export const LANDINGS_COURSES: LandingsCourse[] = [
     ],
   },
   {
-    name: 'Deer Creek',
+    name: 'Landings Golf And Athletic Club (Deer Creek)',
+    displayName: 'Deer Creek',
     location: 'The Landings, Savannah, GA',
     holes: [
       { hole_number: 1,  par: 4, tees: { championship: 396, tournament: 383, club: 355, medal: 336, course: 301, island: 271, skidaway: 211 } },
@@ -132,7 +137,8 @@ export const LANDINGS_COURSES: LandingsCourse[] = [
     ],
   },
   {
-    name: 'Terrapin',
+    name: 'Landings Golf And Athletic Club (Terrapin)',
+    displayName: 'Terrapin',
     location: 'The Landings, Savannah, GA',
     holes: [
       { hole_number: 1,  par: 4, tees: { championship: 425, tournament: 387, club: 358, medal: 336, course: 297, island: 276, skidaway: 205 } },
@@ -156,7 +162,8 @@ export const LANDINGS_COURSES: LandingsCourse[] = [
     ],
   },
   {
-    name: 'Oakridge',
+    name: 'Landings Golf And Athletic Club (Oakridge)',
+    displayName: 'Oakridge',
     location: 'The Landings, Savannah, GA',
     holes: [
       { hole_number: 1,  par: 4, tees: { championship: 415, tournament: 395, club: 381, medal: 342, course: 302, island: 272, skidaway: 225 } },

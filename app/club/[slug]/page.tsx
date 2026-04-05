@@ -238,7 +238,7 @@ export default function ClubChartPage() {
           if (!course) return (
             <span key={lc.name} className="shrink-0 text-[11px] px-2.5 py-1 rounded-full"
               style={{ backgroundColor: '#f3f4f6', color: '#d1d5db' }}>
-              {lc.name}
+              {lc.displayName}
             </span>
           )
           const done = new Set(
@@ -258,7 +258,7 @@ export default function ClubChartPage() {
                 color: isActive ? '#fff' : '#6b7280',
               }}
             >
-              {lc.name} {done}/18
+              {lc.displayName} {done}/18
             </button>
           )
         })}

@@ -8,7 +8,7 @@ import { getClubTheme } from '@/lib/club-themes'
 import { LANDINGS_COURSES, TEE_OPTIONS, TeeOption } from '@/lib/landings-data'
 
 // Reference yardages shown during tee selection (use Palmetto as the example)
-const PALMETTO = LANDINGS_COURSES.find((c) => c.name === 'Palmetto')!
+const PALMETTO = LANDINGS_COURSES.find((c) => c.displayName === 'Palmetto')!
 function totalYardage(tee: TeeOption) {
   return PALMETTO.holes.reduce((sum, h) => sum + h.tees[tee], 0)
 }
