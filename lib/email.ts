@@ -19,7 +19,7 @@ export async function sendAdminCourseRequestNotification({
   if (!adminEmail || !process.env.RESEND_API_KEY) return
 
   await getResend().emails.send({
-    from: 'Birdie Chart <onboarding@resend.dev>',
+    from: 'Birdie Chart <hello@birdiechart.golf>',
     to: adminEmail,
     subject: `New course request: ${courseName}`,
     html: `
@@ -46,7 +46,7 @@ export async function sendUserCourseAddedNotification({
   if (!process.env.RESEND_API_KEY) return
 
   await getResend().emails.send({
-    from: 'Birdie Chart <onboarding@resend.dev>',
+    from: 'Birdie Chart <hello@birdiechart.golf>',
     to: userEmail,
     subject: `${courseName} is now on Birdie Chart`,
     html: `
