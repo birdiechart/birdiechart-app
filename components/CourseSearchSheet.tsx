@@ -34,7 +34,6 @@ export default function CourseSearchSheet({ userId, onClose, onCourseAdded }: Co
   const [hasSearched, setHasSearched] = useState(false)
   const [adding, setAdding] = useState<string | null>(null)
   const [showSuggestions, setShowSuggestions] = useState(false)
-  const [pendingResult, setPendingResult] = useState<SearchResult | null>(null)
 
   // Course request state
   const [showRequestForm, setShowRequestForm] = useState(false)
@@ -135,7 +134,6 @@ export default function CourseSearchSheet({ userId, onClose, onCourseAdded }: Co
 
   async function addCourse(result: SearchResult, holeCount?: number) {
     setAdding(result.id)
-    setPendingResult(null)
     const supabase = createClient()
 
     // Check if already in DB — exact match first, then partial (handles renamed courses)
@@ -164,13 +162,6 @@ export default function CourseSearchSheet({ userId, onClose, onCourseAdded }: Co
           const holesData = await holesRes.json()
           if (holesData.holes?.length > 0) holes = holesData.holes
         } catch { /* ignore */ }
-      }
-
-      // No hole data and no holeCount — ask user
-      if (holes.length === 0 && !holeCount) {
-        setPendingResult(result)
-        setAdding(null)
-        return
       }
 
       const totalHoles = holes.length || holeCount || 18
@@ -335,32 +326,6 @@ export default function CourseSearchSheet({ userId, onClose, onCourseAdded }: Co
         )}
       </div>
 
-      {/* Holes count modal */}
-      {pendingResult && (
-        <>
-          <div className="absolute inset-0 bg-black/40 z-10" onClick={() => setPendingResult(null)} />
-          <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 z-20 bg-white rounded-2xl p-6 shadow-2xl">
-            <h3 className="text-lg font-bold text-gray-900 mb-1" style={{ fontFamily: 'var(--font-playfair)' }}>
-              How many holes?
-            </h3>
-            <p className="text-sm text-gray-500 mb-5">{pendingResult.name}</p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => addCourse(pendingResult, 9)}
-                className="flex-1 py-3.5 rounded-xl border-2 border-gray-200 text-lg font-bold text-gray-700 hover:border-green-500 hover:text-green-700 transition-colors"
-              >
-                9
-              </button>
-              <button
-                onClick={() => addCourse(pendingResult, 18)}
-                className="flex-1 py-3.5 rounded-xl border-2 border-gray-200 text-lg font-bold text-gray-700 hover:border-green-500 hover:text-green-700 transition-colors"
-              >
-                18
-              </button>
-            </div>
-          </div>
-        </>
-      )}
 
       {/* Course request modal */}
       {showRequestForm && (
