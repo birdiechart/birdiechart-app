@@ -3,7 +3,6 @@ import {
   Container,
   Head,
   Html,
-  Img,
   Preview,
   Section,
   Text,
@@ -11,7 +10,6 @@ import {
 } from '@react-email/components'
 import * as React from 'react'
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://birdiechart.golf'
 
 interface BaseLayoutProps {
   preview: string
@@ -27,12 +25,7 @@ export function BaseLayout({ preview, children }: BaseLayoutProps) {
         <Container style={container}>
           {/* Header */}
           <Section style={header}>
-            <Img
-              src={`${APP_URL}/logo.svg`}
-              alt="Birdie Chart"
-              width="180"
-              height="35"
-            />
+            <Text style={logoText}>Birdie Chart</Text>
           </Section>
 
           {/* Content */}
@@ -75,6 +68,14 @@ const header: React.CSSProperties = {
   backgroundColor: '#ffffff',
   padding: '28px 40px 20px',
   borderBottom: '1px solid #e8f0e8',
+}
+
+const logoText: React.CSSProperties = {
+  color: '#1D6B3B',
+  fontSize: '22px',
+  fontWeight: '700',
+  fontFamily: 'Georgia, serif',
+  margin: 0,
 }
 
 const content: React.CSSProperties = {
