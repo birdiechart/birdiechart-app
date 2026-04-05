@@ -61,16 +61,28 @@ export default function CourseSearchSheet({ userId, onClose, onCourseAdded }: Co
     setSearching(true)
     setHasSearched(false)
     try {
+      const supabase = createClient()
       const firstWord = searchQuery.trim().split(/\s+/)[0]
       const needsSecondGolfSearch = firstWord.toLowerCase() !== searchQuery.trim().toLowerCase()
 
-      const [googleRes, golfRes, golfRes2] = await Promise.allSettled([
+      const [googleRes, golfRes, golfRes2, dbRes] = await Promise.allSettled([
         fetch(`/api/courses/search?q=${encodeURIComponent(searchQuery)}`).then(r => r.json()),
         fetch(`/api/courses/search-golf?q=${encodeURIComponent(searchQuery)}`).then(r => r.json()),
         ...(needsSecondGolfSearch
           ? [fetch(`/api/courses/search-golf?q=${encodeURIComponent(firstWord)}`).then(r => r.json())]
           : [Promise.resolve({ results: [] })]),
+        supabase.from('courses').select('*').ilike('name', `%${searchQuery}%`).limit(5),
       ])
+
+      // DB results — show first with full names
+      const dbResults: SearchResult[] = dbRes.status === 'fulfilled' && dbRes.value.data
+        ? (dbRes.value.data as { id: string; name: string; location: string }[]).map((c) => ({
+            id: `db_${c.id}`,
+            name: c.name,
+            formatted_address: c.location,
+            source: 'golfapi' as const,
+          }))
+        : []
 
       const googleResults: SearchResult[] = googleRes.status === 'fulfilled'
         ? (googleRes.value.results || []).map((p: { place_id: string; name: string; formatted_address: string }) => ({
@@ -105,16 +117,18 @@ export default function CourseSearchSheet({ userId, onClose, onCourseAdded }: Co
         totalHoles: r.total_holes || r.holes?.length || 18,
       }))
 
-      // Prefer GolfAPI results (they have par data) — drop Google results that overlap
+      const dbNames = new Set(dbResults.map(d => d.name.toLowerCase()))
+
       const filteredGoogleResults = googleResults.filter(g => {
         const gName = g.name.toLowerCase().trim()
-        return !mergedGolfRaw.some(r => {
+        return !dbNames.has(gName) && !mergedGolfRaw.some(r => {
           const rName = r.name.toLowerCase().trim()
           return gName.includes(rName) || rName.includes(gName)
         })
       })
+      const filteredGolfApi = golfApiResults.filter(g => !dbNames.has(g.name.toLowerCase().trim()))
 
-      setResults([...golfApiResults, ...filteredGoogleResults])
+      setResults([...dbResults, ...filteredGolfApi, ...filteredGoogleResults])
     } catch {
       setResults([])
     }
@@ -135,6 +149,18 @@ export default function CourseSearchSheet({ userId, onClose, onCourseAdded }: Co
   async function addCourse(result: SearchResult, holeCount?: number) {
     setAdding(result.id)
     const supabase = createClient()
+
+    // If result came from DB search, look up directly by ID
+    if (result.id.startsWith('db_')) {
+      const dbId = result.id.replace('db_', '')
+      const { data: dbCourse } = await supabase.from('courses').select('*').eq('id', dbId).single()
+      if (dbCourse) {
+        await supabase.from('user_courses').upsert({ user_id: userId, course_id: dbCourse.id, added_at: new Date().toISOString() })
+        onCourseAdded(dbCourse)
+        setAdding(null)
+        return
+      }
+    }
 
     // Check if already in DB — exact match first, then partial (handles renamed courses)
     let { data: course } = await supabase
