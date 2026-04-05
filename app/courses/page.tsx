@@ -203,18 +203,41 @@ export default function CoursesPage() {
         ...(needsSecondGolfSearch
           ? [fetch(`/api/courses/search-golf?q=${encodeURIComponent(firstWord)}`).then(r => r.json())]
           : [Promise.resolve({ results: [] })]),
-        supabase.from('courses').select('*').ilike('name', `%${searchQuery}%`).limit(5),
+        supabase.from('courses').select('id, name, location').limit(200),
       ])
 
-      // DB results — show first with full names
-      const dbResults: SearchResult[] = dbRes.status === 'fulfilled' && dbRes.value.data
-        ? (dbRes.value.data as { id: string; name: string; location: string }[]).map((c) => ({
-            id: `db_${c.id}`,
-            name: c.name,
-            formatted_address: c.location,
-            source: 'golfapi' as const,
-          }))
-        : []
+      // All DB courses — used for both display and dedup
+      const allDbCourses: { id: string; name: string; location: string }[] =
+        dbRes.status === 'fulfilled' && dbRes.value.data ? dbRes.value.data : []
+
+      const skipWords = new Set(['golf', 'course', 'club', 'the', 'and', 'at', 'of', 'a'])
+      function keyWords(s: string) {
+        return s.toLowerCase().split(/\W+/).filter(w => w.length > 2 && !skipWords.has(w))
+      }
+
+      // DB results to display: those with keyword overlap to the search query
+      const searchWords = keyWords(searchQuery)
+      const dbResults: SearchResult[] = allDbCourses
+        .filter(c => {
+          const cWords = keyWords(c.name)
+          return searchWords.some(w => cWords.includes(w)) || cWords.some(w => searchWords.includes(w))
+        })
+        .map(c => ({
+          id: `db_${c.id}`,
+          name: c.name,
+          formatted_address: c.location,
+          source: 'golfapi' as const,
+        }))
+
+      // Use ALL DB courses for dedup — prevents Google/GolfAPI duplicates even for courses
+      // not directly matching the search string (e.g. "Oakridge" matching "Landings...Oakridge")
+      function overlapsDb(name: string) {
+        const words = keyWords(name)
+        return allDbCourses.some(c => {
+          const dbWords = keyWords(c.name)
+          return words.some(w => dbWords.includes(w)) || dbWords.some(w => words.includes(w))
+        })
+      }
 
       const googleResults: SearchResult[] = googleRes.status === 'fulfilled'
         ? (googleRes.value.results || []).map((p: { place_id: string; name: string; formatted_address: string }) => ({
@@ -238,18 +261,6 @@ export default function CoursesPage() {
         formatted_address: r.formatted_address, source: 'golfapi' as const,
         prefetchedHoles: r.holes, totalHoles: r.total_holes || r.holes?.length || 18,
       }))
-
-      const skipWords = new Set(['golf', 'course', 'club', 'the', 'and', 'at', 'of', 'a'])
-      function keyWords(s: string) {
-        return s.toLowerCase().split(/\W+/).filter(w => w.length > 2 && !skipWords.has(w))
-      }
-      function overlapsDb(name: string) {
-        const words = keyWords(name)
-        return dbResults.some(db => {
-          const dbWords = keyWords(db.name)
-          return words.some(w => dbWords.includes(w)) || dbWords.some(w => words.includes(w))
-        })
-      }
 
       const filteredGoogle = googleResults.filter(g => !overlapsDb(g.name))
       const filteredGolfApi = golfApiResults.filter(g => !overlapsDb(g.name))
