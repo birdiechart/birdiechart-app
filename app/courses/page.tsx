@@ -418,10 +418,17 @@ export default function CoursesPage() {
               {results.map((result, i) => {
                 const added = addedNames.has(result.name)
                 const isLast = i === results.length - 1
-                // Extract short name if it's a long "Club (Name)" format
+                // Extract short name from various Google/DB formats:
+                // "Club (Palmetto)" → displayName: "Palmetto", parent: "Club"
+                // "Palmetto Golf Course at The Landings..." → displayName: "Palmetto Golf Course", parent: "The Landings..."
                 const parenMatch = result.name.match(/\(([^)]+)\)$/)
-                const displayName = parenMatch ? parenMatch[1] : result.name
-                const parentName = parenMatch ? result.name.replace(/\s*\([^)]+\)$/, '') : null
+                const atMatch = !parenMatch && result.name.match(/^(.+?)\s+at\s+(.+)$/i)
+                const displayName = parenMatch
+                  ? parenMatch[1]
+                  : atMatch ? atMatch[1] : result.name
+                const parentName = parenMatch
+                  ? result.name.replace(/\s*\([^)]+\)$/, '')
+                  : atMatch ? atMatch[2] : null
                 return (
                   <div key={result.id} className={`flex items-center justify-between px-4 py-3 ${!isLast ? 'border-b border-gray-50' : ''}`}>
                     <div className="flex-1 min-w-0 mr-3">

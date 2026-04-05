@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     const body: Record<string, unknown> = {
       textQuery: searchQuery,
       includedType: 'golf_course',
-      maxResultCount: 10,
+      maxResultCount: 20,
     }
     if (lat && lng) {
       body.locationBias = {
