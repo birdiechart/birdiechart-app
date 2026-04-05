@@ -94,15 +94,52 @@ export default function CoursesPage() {
     setSearching(true)
     try {
       const { lat, lng } = location!
+      const supabase = createClient()
       const res = await fetch(`/api/courses/search?q=golf+course&lat=${lat}&lng=${lng}`)
       const data = await res.json()
-      const nearby: SearchResult[] = (data.results || []).map((p: { place_id: string; name: string; formatted_address: string }) => ({
+      const googleResults: SearchResult[] = (data.results || []).map((p: { place_id: string; name: string; formatted_address: string }) => ({
         id: p.place_id,
         name: p.name,
         formatted_address: p.formatted_address,
         source: 'google' as const,
       }))
-      setResults(nearby)
+
+      // For each nearby result, check if we have it in the DB (with par data)
+      // and swap it out so the DB version (with full name) shows instead
+      const enriched: SearchResult[] = await Promise.all(
+        googleResults.map(async (r) => {
+          const { data: fuzzy } = await supabase
+            .from('courses')
+            .select('*')
+            .ilike('name', `%${r.name}%`)
+            .limit(1)
+          if (fuzzy && fuzzy.length > 0) {
+            return {
+              id: `db_${fuzzy[0].id}`,
+              name: fuzzy[0].name,
+              formatted_address: fuzzy[0].location,
+              source: 'golfapi' as const,
+            }
+          }
+          return r
+        })
+      )
+
+      // Deduplicate (DB matches may produce duplicates for same course)
+      const seen = new Set<string>()
+      const deduped = enriched.filter(r => {
+        if (seen.has(r.name)) return false
+        seen.add(r.name)
+        return true
+      })
+
+      // Sort: DB courses (with par data) first, Google results after
+      const sorted = [
+        ...deduped.filter(r => r.id.startsWith('db_')),
+        ...deduped.filter(r => !r.id.startsWith('db_')),
+      ]
+
+      setResults(sorted)
       setResultsLabel('Nearby Courses')
     } catch { /* ignore */ }
     setSearching(false)
