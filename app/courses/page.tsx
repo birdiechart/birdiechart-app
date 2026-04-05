@@ -287,7 +287,7 @@ export default function CoursesPage() {
   void debounceRef
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-white pb-20">
       <div className="bg-white safe-top" style={{ boxShadow: '0 1px 0 0 #e5e7eb' }}>
         <div className="px-4 pt-3 pb-3 flex items-center gap-2.5">
           <BirdieLogo iconOnly className="w-8 h-8" />
@@ -297,33 +297,30 @@ export default function CoursesPage() {
           </div>
         </div>
 
-        <div className="px-4 pb-4">
+        <div className="px-4 pb-3">
           <div className="relative">
-            <div className="flex gap-2">
-              <input
-                ref={inputRef}
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') { setShowSuggestions(false); runSearch(query) } if (e.key === 'Escape') setShowSuggestions(false) }}
-                onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
-                placeholder="Search by name or location..."
-                className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 bg-gray-50"
-                autoComplete="off"
-              />
-              <button
-                onClick={() => runSearch(query)}
-                disabled={searching || !query.trim()}
-                className="px-4 py-2.5 rounded-xl text-white text-sm font-semibold disabled:opacity-60"
-                style={{ backgroundColor: '#1D6B3B' }}
-              >
-                {searching ? '...' : 'Search'}
-              </button>
+            <input
+              ref={inputRef}
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') { setShowSuggestions(false); runSearch(query) } if (e.key === 'Escape') setShowSuggestions(false) }}
+              onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+              placeholder="Search courses..."
+              className="w-full px-4 py-2.5 pr-10 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 bg-gray-50"
+              autoComplete="off"
+            />
+            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+              {searching ? (
+                <div className="w-4 h-4 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: '#1D6B3B', borderTopColor: 'transparent' }} />
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              )}
             </div>
 
             {/* Autocomplete dropdown */}
             {showSuggestions && suggestions.length > 0 && (
-              <div ref={suggestionsRef} className="absolute top-full left-0 right-12 z-30 mt-1 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+              <div ref={suggestionsRef} className="absolute top-full left-0 right-0 z-30 mt-1 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
                 {suggestions.map((s) => (
                   <button
                     key={s.place_id}
@@ -340,10 +337,10 @@ export default function CoursesPage() {
         </div>
       </div>
 
-      <div className="px-4 pt-4">
+      <div className="px-4 pt-3">
         {results.length > 0 ? (
           <>
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-1 px-1">
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{resultsLabel}</p>
               {query.length >= 2 && !searching && (
                 <button onClick={openRequestForm} className="text-xs text-green-700 font-medium underline underline-offset-2">
@@ -351,17 +348,20 @@ export default function CoursesPage() {
                 </button>
               )}
             </div>
-            <div className="space-y-2">
-              {results.map((result) => {
+            <div className="bg-white rounded-2xl overflow-hidden border border-gray-100">
+              {results.map((result, i) => {
                 const added = addedNames.has(result.name)
+                const isLast = i === results.length - 1
+                // Extract short name if it's a long "Club (Name)" format
+                const parenMatch = result.name.match(/\(([^)]+)\)$/)
+                const displayName = parenMatch ? parenMatch[1] : result.name
+                const parentName = parenMatch ? result.name.replace(/\s*\([^)]+\)$/, '') : null
                 return (
-                  <div key={result.id} className="bg-white rounded-2xl p-4 shadow-sm flex items-center justify-between">
+                  <div key={result.id} className={`flex items-center justify-between px-4 py-3 ${!isLast ? 'border-b border-gray-50' : ''}`}>
                     <div className="flex-1 min-w-0 mr-3">
-                      <p className="font-semibold text-gray-900 text-sm">{result.name}</p>
-                      {result.club_name && result.club_name !== result.name && (
-                        <p className="text-xs text-gray-500 mt-0.5">{result.club_name}</p>
-                      )}
-                      {result.formatted_address && (
+                      <p className="font-semibold text-gray-900 text-sm truncate">{displayName}</p>
+                      {parentName && <p className="text-xs text-gray-400 mt-0.5 truncate">{parentName}</p>}
+                      {!parentName && result.formatted_address && (
                         <p className="text-xs text-gray-400 mt-0.5 truncate">{result.formatted_address}</p>
                       )}
                     </div>
@@ -372,7 +372,7 @@ export default function CoursesPage() {
                       </span>
                     ) : (
                       <button onClick={() => addCourse(result)} disabled={adding === result.id}
-                        className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-white disabled:opacity-60 shrink-0"
+                        className="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-60 shrink-0"
                         style={{ backgroundColor: '#1D6B3B' }}>
                         {adding === result.id ? '...' : 'Add'}
                       </button>
@@ -387,8 +387,8 @@ export default function CoursesPage() {
             <p className="text-sm text-gray-400 text-center pt-16">Search for any golf course above</p>
           )
         )}
-        {searching && (
-          <p className="text-sm text-gray-400 text-center pt-16">Searching...</p>
+        {searching && !results.length && (
+          <p className="text-sm text-gray-400 text-center pt-16">Finding courses...</p>
         )}
       </div>
 
