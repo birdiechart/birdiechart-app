@@ -262,23 +262,30 @@ export default function CoursesPage() {
         prefetchedHoles: r.holes, totalHoles: r.total_holes || r.holes?.length || 18,
       }))
 
-      // Also suppress Google results that overlap with GolfAPI results (prefer cleaner GolfAPI names)
-      function overlapsGolfApi(name: string) {
-        const words = keyWords(name)
-        return golfApiResults.some(r => {
+      // Deduplicate across all sources in priority order: DB > GolfAPI > Google
+      // Any result that shares a meaningful keyword with an already-accepted result is dropped.
+      const allCandidates = [
+        ...dbResults,
+        ...golfApiResults,
+        ...googleResults,
+      ]
+      const accepted: SearchResult[] = []
+      for (const candidate of allCandidates) {
+        const words = keyWords(candidate.name)
+        const duplicate = accepted.some(r => {
           const rWords = keyWords(r.name)
           return words.some(w => rWords.includes(w)) || rWords.some(w => words.includes(w))
         })
+        if (!duplicate) accepted.push(candidate)
       }
 
-      const filteredGoogle = googleResults.filter(g => !overlapsDb(g.name) && !overlapsGolfApi(g.name))
-      const filteredGolfApi = golfApiResults.filter(g => !overlapsDb(g.name))
+      // Sort: DB entries first (have par data), then rest
+      const final = [
+        ...accepted.filter(r => r.id.startsWith('db_')),
+        ...accepted.filter(r => !r.id.startsWith('db_')),
+      ]
 
-      const externalResults = location
-        ? [...filteredGoogle, ...filteredGolfApi]
-        : [...filteredGolfApi, ...filteredGoogle]
-
-      setResults([...dbResults, ...externalResults])
+      setResults(final)
     } catch {
       setResults([])
     }
