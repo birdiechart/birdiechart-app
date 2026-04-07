@@ -54,7 +54,7 @@ export default function CoursesPage() {
     async function init() {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { router.push('/login'); return }
+      if (!user) { router.push('/login?return=/courses'); return }
       setUserId(user.id)
 
       const { data: userCourses } = await supabase
