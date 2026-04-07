@@ -22,6 +22,7 @@ export async function sendAdminCourseRequestNotification({
 
   await getResend().emails.send({
     from: 'Birdie Chart <team@birdiechart.golf>',
+    replyTo: adminEmail,
     to: adminEmail,
     subject: `New course request: ${courseName}`,
     html: `
@@ -49,6 +50,7 @@ export async function sendUserCourseAddedNotification({
 
   await getResend().emails.send({
     from: 'Birdie Chart <team@birdiechart.golf>',
+    replyTo: 'birdiechart@gmail.com',
     to: userEmail,
     subject: `${courseName} is now on Birdie Chart`,
     html: `
@@ -73,6 +75,7 @@ export async function sendWelcomeEmail({
 
   await getResend().emails.send({
     from: 'Birdie Chart <team@birdiechart.golf>',
+    replyTo: 'birdiechart@gmail.com',
     to: userEmail,
     subject: 'Can you birdie every hole at your course?',
     html,
