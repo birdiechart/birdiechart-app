@@ -3,9 +3,9 @@ import { createAdminClient } from '@/lib/supabase-admin'
 import { sendAdminCourseRequestNotification } from '@/lib/email'
 
 export async function POST(request: NextRequest) {
-  const { user_id, course_name, location } = await request.json()
+  const { user_id, course_name, location, email: directEmail } = await request.json()
 
-  if (!user_id || !course_name) {
+  if (!course_name) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
   }
 
@@ -13,26 +13,31 @@ export async function POST(request: NextRequest) {
 
   const { error } = await admin
     .from('course_requests')
-    .insert({ user_id, course_name, location: location || '' })
+    .insert({ user_id: user_id || null, course_name, location: location || '' })
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  const { data: user } = await admin
-    .from('users')
-    .select('name, email')
-    .eq('id', user_id)
-    .single()
+  // Get contact info — either from the users table (logged-in) or directly from the request
+  let userName = 'Guest'
+  let userEmail = directEmail || ''
 
-  if (user) {
-    await sendAdminCourseRequestNotification({
-      courseName: course_name,
-      location: location || '',
-      userName: user.name,
-      userEmail: user.email,
-    }).catch(() => { /* non-fatal */ })
+  if (user_id) {
+    const { data: user } = await admin
+      .from('users')
+      .select('name, email')
+      .eq('id', user_id)
+      .single()
+    if (user) { userName = user.name; userEmail = user.email }
   }
+
+  await sendAdminCourseRequestNotification({
+    courseName: course_name,
+    location: location || '',
+    userName,
+    userEmail,
+  }).catch(() => { /* non-fatal */ })
 
   return NextResponse.json({ ok: true })
 }

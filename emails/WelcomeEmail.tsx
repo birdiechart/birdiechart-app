@@ -59,7 +59,7 @@ export function WelcomeEmail({ userName }: WelcomeEmailProps) {
       <Text style={ps}>
         <em>
           P.S. If your course isn't in our list yet, hit{' '}
-          <Link href={`${APP_URL}/courses`} style={link}>Request a Course</Link>
+          <Link href={`${APP_URL}/request`} style={link}>Request a Course</Link>
           {' '}and we'll get it added. We want every golfer's home course in here.
         </em>
       </Text>
