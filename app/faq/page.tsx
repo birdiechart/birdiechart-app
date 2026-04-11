@@ -23,6 +23,10 @@ const faqs = [
     a: 'Yes. Search for any course using the Find Courses tab and add it to your chart. Each course gets its own hole grid.',
   },
   {
+    q: 'Why do some courses show par for each hole and others don\'t?',
+    a: 'Courses that show par information have been manually verified and entered by our team — including all hole-by-hole pars and yardages. Courses added through a general search may not have that data in our system yet. If your course is missing par information, just request it using the "Request a Course" button in the Find Courses tab or in Settings, and we\'ll get the full details added within 24 hours.',
+  },
+  {
     q: 'Can I delete a score?',
     a: 'Yes. Tap the hole, then in the score history panel tap the trash icon next to any entry to remove it. Your progress updates immediately.',
   },
