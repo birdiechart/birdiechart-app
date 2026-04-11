@@ -77,7 +77,7 @@ export async function sendWelcomeEmail({
     from: 'Birdie Chart <team@birdiechart.golf>',
     replyTo: 'birdiechart@gmail.com',
     to: userEmail,
-    subject: 'Can you birdie every hole at your course?',
+    subject: `Welcome to Birdie Chart, ${userName}`,
     html,
   })
 }

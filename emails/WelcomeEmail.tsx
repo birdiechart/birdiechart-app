@@ -1,4 +1,4 @@
-import { Button, Link, Text } from '@react-email/components'
+import { Link, Text } from '@react-email/components'
 import * as React from 'react'
 import { BaseLayout } from './BaseLayout'
 
@@ -11,6 +11,11 @@ interface WelcomeEmailProps {
 export function WelcomeEmail({ userName }: WelcomeEmailProps) {
   return (
     <BaseLayout preview="One hole at a time. The challenge starts now.">
+      <Text style={muted}>
+        If this landed in Promotions, move it to Primary and add{' '}
+        <Link href="mailto:team@birdiechart.golf" style={mutedLink}>team@birdiechart.golf</Link>{' '}
+        to your contacts so you don&apos;t miss updates.
+      </Text>
       <Text style={p}>Hey {userName},</Text>
       <Text style={p}>It started as a simple game with my kids.</Text>
       <Text style={p}>
@@ -49,9 +54,9 @@ export function WelcomeEmail({ userName }: WelcomeEmailProps) {
       </Text>
       <Text style={p}>Either way, the challenge is waiting.</Text>
 
-      <Button style={button} href={`${APP_URL}/chart`}>
-        Go to your Birdie Chart →
-      </Button>
+      <Text style={p}>
+        <Link href={`${APP_URL}/chart`} style={ctaLink}>Go to your Birdie Chart →</Link>
+      </Text>
 
       <Text style={p}>One birdie at a time.</Text>
       <Text style={signature}>— Britt<br />Birdie Chart</Text>
@@ -112,4 +117,23 @@ const ps: React.CSSProperties = {
 
 const link: React.CSSProperties = {
   color: '#1D6B3B',
+}
+
+const ctaLink: React.CSSProperties = {
+  color: '#1D6B3B',
+  fontWeight: '600',
+  fontSize: '15px',
+}
+
+const muted: React.CSSProperties = {
+  color: '#9ca3af',
+  fontSize: '12px',
+  lineHeight: '1.5',
+  margin: '0 0 20px',
+  borderBottom: '1px solid #f3f4f6',
+  paddingBottom: '16px',
+}
+
+const mutedLink: React.CSSProperties = {
+  color: '#9ca3af',
 }
