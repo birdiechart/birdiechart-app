@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 
 export default function SettingsPage() {
@@ -87,6 +88,30 @@ export default function SettingsPage() {
               />
             </div>
           </button>
+        </div>
+
+        {/* Request a course */}
+        <div className="bg-white rounded-2xl p-5 shadow-sm mt-4">
+          <h2 className="text-sm font-bold text-gray-900 mb-1">Missing a Course?</h2>
+          <p className="text-xs text-gray-400 mb-4">
+            If your home course or a favourite isn&apos;t in Birdie Chart yet, let us know and we&apos;ll add it within 24 hours.
+          </p>
+          <Link
+            href="/request"
+            className="w-full flex items-center justify-between p-3.5 rounded-xl border-2 text-left"
+            style={{ borderColor: '#1D6B3B' }}
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-lg">⛳</span>
+              <div>
+                <p className="text-sm font-semibold" style={{ color: '#1D6B3B' }}>Request a Course</p>
+                <p className="text-xs text-gray-400">We&apos;ll email you when it&apos;s live</p>
+              </div>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1D6B3B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 18l6-6-6-6"/>
+            </svg>
+          </Link>
         </div>
 
         {/* Save */}

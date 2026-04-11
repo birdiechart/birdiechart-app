@@ -343,14 +343,7 @@ export default function CourseSearchSheet({ userId, onClose, onCourseAdded }: Co
         {/* Search results */}
         {results.length > 0 && (
           <div className="mb-5">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Search Results</p>
-              {query.length >= 3 && !searching && (
-                <button onClick={openRequestForm} className="text-xs text-green-700 font-medium underline underline-offset-2">
-                  Not listed? Request it
-                </button>
-              )}
-            </div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Search Results</p>
             <div className="space-y-2">
               {results.map((result) => (
                 <div key={result.id} className="flex items-center justify-between p-3 rounded-xl border border-gray-100 bg-gray-50">
@@ -377,6 +370,15 @@ export default function CourseSearchSheet({ userId, onClose, onCourseAdded }: Co
               ))}
             </div>
 
+          {!searching && (
+            <button
+              onClick={openRequestForm}
+              className="w-full mt-3 py-3 rounded-2xl border-2 text-sm font-semibold flex items-center justify-center gap-2"
+              style={{ borderColor: '#1D6B3B', color: '#1D6B3B' }}
+            >
+              <span>⛳</span> Don&apos;t see your course? Request it
+            </button>
+          )}
           </div>
         )}
 

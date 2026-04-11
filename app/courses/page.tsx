@@ -435,11 +435,6 @@ export default function CoursesPage() {
           <>
             <div className="flex items-center justify-between mb-1 px-1">
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{resultsLabel}</p>
-              {query.length >= 2 && !searching && (
-                <button onClick={openRequestForm} className="text-xs text-green-700 font-medium underline underline-offset-2">
-                  Not listed? Request it
-                </button>
-              )}
             </div>
             <div className="bg-white rounded-2xl overflow-hidden border border-gray-100">
               {results.map((result, i) => {
@@ -481,6 +476,15 @@ export default function CoursesPage() {
                 )
               })}
             </div>
+            {!searching && (
+              <button
+                onClick={openRequestForm}
+                className="w-full mt-3 py-3 rounded-2xl border-2 text-sm font-semibold flex items-center justify-center gap-2"
+                style={{ borderColor: '#1D6B3B', color: '#1D6B3B' }}
+              >
+                <span>⛳</span> Don&apos;t see your course? Request it
+              </button>
+            )}
           </>
         ) : (
           !searching && !location && (
